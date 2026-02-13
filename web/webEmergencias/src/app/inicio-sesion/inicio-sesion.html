@@ -1,52 +1,35 @@
 <section class="page-section" id="contact">
-            <div class="container px-4 px-lg-5" id="container-log-in">
-                <div class="row gx-4 gx-lg-5 justify-content-center">
-                    <div class="col-lg-8 col-xl-6 text-center">
-                        <h2 class="mt-0" id="titulo" >Iniciar Sesión.</h2>
-                        <hr class="divider" />
-                        <p class="text-muted mb-5" id="subtitulo" >¡Inicia sesión y coordina las emergencias de la ciudad!</p>
-                    </div>
-                </div>
-                <div class="row gx-4 gx-lg-5 justify-content-center mb-5">
-                    <div class="col-lg-6">
-                        
-                        <form id="contactForm" data-sb-form-api-token="API_TOKEN">
-                            <!-- Name input-->
-                            
-                            <!-- Email address input-->
-                            <div class="form-floating mb-3">
-                                <input class="form-control" id="email" type="email" placeholder="name@example.com" data-sb-validations="required,email" />
-                                <label for="email">Email</label>
-                                <div class="invalid-feedback" data-sb-feedback="email:required">An email is required.</div>
-                                <div class="invalid-feedback" data-sb-feedback="email:email">Email is not valid.</div>
-                            </div>
-                            <div class="form-floating mb-3">
-                                <input class="form-control" id="name" type="password" placeholder="Enter your name..." data-sb-validations="required" />
-                                <label for="name">Contraseña</label>
-                                <div class="invalid-feedback" data-sb-feedback="name:required">A name is required.</div>
-                            </div>
-                                                        <!-- Submit success message-->
-                            <!---->
-                            <!-- This is what your users will see when the form-->
-                            <!-- has successfully submitted-->
-                            <div class="d-none" id="submitSuccessMessage">
-                                <div class="text-center mb-3">
-                                    <div class="fw-bolder">Form submission successful!</div>
-                                    To activate this form, sign up at
-                                    <br />
-                                    <a href="https://startbootstrap.com/solution/contact-forms">https://startbootstrap.com/solution/contact-forms</a>
-                                </div>
-                            </div>
-                            <!-- Submit error message-->
-                            <!---->
-                            <!-- This is what your users will see when there is-->
-                            <!-- an error submitting the form-->
-                            <div class="d-none" id="submitErrorMessage"><div class="text-center text-danger mb-3">Error sending message!</div></div>
-                            <!-- Submit Button-->
-                            <div class="d-grid"><button class="btn btn-primary btn-xl disabled" id="submitButton" type="submit">ENVIAR</button></div>
-                        </form>
-                    </div>
-                </div>
-                
+
+    <!-- imagen decorativa a la izquierda -->
+    <div id="seccion-izq" [style.background-image]="'url(' + fondoSeleccionado + ')'"></div>
+
+    <!-- contenido para el login -->
+    <div id="seccion-drch">
+        <div id="titulo">
+            <h1 class="display-1">Log-in.</h1>
+            <hr id="separador">
+        </div>
+        <div id="login">
+
+            <!-- input del correo Electrónico -->
+            <div class="group contenedor-input">
+                <input required="" type="text" class="input">
+                <span class="highlight"></span>
+                <span class="bar"></span>
+                <label>nombre de usuario</label>
             </div>
-        </section>
+
+            <!-- sección de la Contraseña -->
+            <div class="group contenedor-input">
+                <input required="" type="password" class="input">
+                <span class="highlight"></span>
+                <span class="bar"></span>
+                <label>Contraseña</label>
+            </div>
+
+            <button class="slice">
+                <span class="text">Iniciar Sesión</span>
+            </button>
+        </div>
+    </div>
+</section>

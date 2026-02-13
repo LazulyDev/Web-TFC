@@ -1,25 +1,206 @@
 #contact{
     width: 100vw;
     height: 100vh;
-    background-image: url(/img/inicio-sesion/luces-policia2.jpg);
-    background-size: cover;
-    background-repeat: no-repeat;
+    padding: 0;
+    margin: 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
-    #container-log-in{
-        background-color: rgba(119, 136, 153, 0.8);;
-        border-radius: 10px;
-        padding: 1rem;
+    #seccion-izq{
+        margin: 0;
+        height: 100%;
         width: 50%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background-image 0.4s ease-in;
+        
     }
 
-    #titulo{
-        color: white !important;
+    #seccion-drch{
+        margin: 0;
+        height: 100%;
+        width: 50%;
+        background-color: #F8FBF8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
     }
 
-    #subtitulo{
-        color: white !important;
-    }
+        #titulo{
+            width: 100%;
+            padding: 2rem;
+            color: #010937;
+        }
+
+        #separador{
+            margin-bottom: 2rem;
+            color: #010937;
+        }
+
+        #login{
+            height: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 2rem;
+        }
+        .contenedor-input{
+            margin: 1.5rem;
+            width: 100%;
+        }
+
+        /* inputs de texto */
+
+        .group {
+            position: relative;
+        }
+
+        .input {
+            font-size: 16px;
+            padding: 10px 10px 10px 5px;
+            display: block;
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #F96815;
+            background: transparent;
+        }
+
+        .input:focus {
+            outline: none;
+        }
+
+        label {
+            color: #999;
+            font-size: 18px;
+            font-weight: normal;
+            position: absolute;
+            pointer-events: none;
+            left: 5px;
+            top: 10px;
+            transition: 0.2s ease all;
+            -moz-transition: 0.2s ease all;
+            -webkit-transition: 0.2s ease all;
+        }
+
+        .input:focus ~ label, .input:valid ~ label {
+            top: -20px;
+            font-size: 14px;
+            color: #F96815;
+        }
+
+        .bar {
+            position: relative;
+            display: block;
+            width: 100%;
+        }
+
+        .bar:before, .bar:after {
+            content: '';
+            height: 2px;
+            width: 0;
+            bottom: 1px;
+            position: absolute;
+            background: #F96815;
+            transition: 0.2s ease all;
+            -moz-transition: 0.2s ease all;
+            -webkit-transition: 0.2s ease all;
+        }
+
+        .bar:before {
+            left: 50%;
+        }
+
+        .bar:after {
+            right: 50%;
+        }
+
+        .input:focus ~ .bar:before, .input:focus ~ .bar:after {
+            width: 50%;
+        }
+
+        .highlight {
+            position: absolute;
+            height: 60%;
+            width: 100px;
+            top: 25%;
+            left: 0;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .input:focus ~ .highlight {
+            animation: inputHighlighter 0.3s ease;
+        }
+
+        @keyframes inputHighlighter {
+            from {
+                background: #F96815;
+        }
+
+        to {
+            width: 0;
+            background: transparent;
+            }
+        }
+
+        /* botón de enviar */
+        .slice {
+            --c1: #010937;
+            --c2: #F96815;
+            --size-letter: 16px;
+            padding: 0.8em 2em;
+            font-size: var(--size-letter);
+            width: 100%;
+
+            background-color: transparent;
+            border: calc(var(--size-letter) / 6) solid var(--c2);
+            border-radius: 0.2em;
+            cursor: pointer;
+
+            overflow: hidden;
+            position: relative;
+            transition: 300ms cubic-bezier(0.83, 0, 0.17, 1);
+            margin-top: 3rem;
+
+            & > .text {
+                font-weight: 700;
+                color: var(--c2);
+                position: relative;
+                z-index: 1;
+                transition: color 700ms cubic-bezier(0.83, 0, 0.17, 1);
+            }
+            }
+
+            .slice::after {
+                content: "";
+
+                width: 0;
+                height: calc(1000% + 2em);
+
+                position: absolute;
+                translate: -50% -50%;
+                inset: 50%;
+                rotate: 30deg;
+
+                background-color: var(--c2);
+                transition: 1000ms cubic-bezier(0.83, 0, 0.17, 1);
+            }
+
+            .slice:hover {
+                & > .text {
+                    color: var(--c1);
+                }
+                &::after {
+                    width: 300%;
+                }
+            }
+
+            .slice:active {
+                scale: 0.98;
+                filter: brightness(0.9);
+            }
+
+
