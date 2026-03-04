@@ -8,7 +8,6 @@ import { Component, OnInit } from '@angular/core';
   styleUrl: './inicio-sesion.css',
 })
 export class InicioSesion implements OnInit {
-  // 1. Usamos una variable para bindearla directamente al HTML
   fondoSeleccionado: string = '';
 
   listaFondos: string[] = [
@@ -29,4 +28,15 @@ export class InicioSesion implements OnInit {
     const indice = Math.floor(Math.random() * this.listaFondos.length);
     return this.listaFondos[indice];
   }
+
+  // estraccion de la información para el inicio de sesión
+  usr= (nombre: string) => {
+    if(nombre.includes("@") || nombre.includes(".com")){
+      return nombre
+    } else return null
+  }
+
+  pswd: string = ""
+
+  // inicio de sesión
 }

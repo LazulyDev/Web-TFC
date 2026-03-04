@@ -28,9 +28,16 @@
         flex-direction: column;
     }
 
+        #contenedor-imagen{
+            display: flex;
+            justify-content: space-between;
+            margin: 0;
+            padding-left: 2rem;
+            padding-rig: 2rem;
+        }
+
         #titulo{
             width: 100%;
-            padding: 2rem;
             color: #010937;
         }
 
