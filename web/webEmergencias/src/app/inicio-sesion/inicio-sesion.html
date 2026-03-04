@@ -15,7 +15,7 @@
 
             <!-- input del correo Electrónico -->
             <div class="group contenedor-input">
-                <input required="" type="text" class="input">
+                <input #usrName required="" type="text" class="input">
                 <span class="highlight"></span>
                 <span class="bar"></span>
                 <label>nombre de usuario</label>
@@ -23,13 +23,13 @@
 
             <!-- sección de la Contraseña -->
             <div class="group contenedor-input">
-                <input required="" type="password" class="input">
+                <input #usrPswd required="" type="password" class="input">
                 <span class="highlight"></span>
                 <span class="bar"></span>
                 <label>Contraseña</label>
             </div>
 
-            <button class="slice">
+            <button class="slice" (click)="iniciarSesion(usrName.value, usrPswd.value)">
                 <span class="text">Iniciar Sesión</span>
             </button>
         </div>

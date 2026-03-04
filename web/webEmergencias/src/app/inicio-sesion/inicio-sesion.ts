@@ -1,4 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { Firestore } from '@angular/fire/firestore';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-inicio-sesion',
@@ -8,6 +11,9 @@ import { Component, OnInit } from '@angular/core';
   styleUrl: './inicio-sesion.css',
 })
 export class InicioSesion implements OnInit {
+  private authService = inject(AuthService);
+  private router = inject(Router)
+
   fondoSeleccionado: string = '';
 
   listaFondos: string[] = [
@@ -39,4 +45,14 @@ export class InicioSesion implements OnInit {
   pswd: string = ""
 
   // inicio de sesión
+  
+  async iniciarSesion(usrname: string, pswd: string): Promise<void> {
+    const esLoginCorrecto = await this.authService.login(usrname, pswd);
+    if (esLoginCorrecto) {
+      console.log("usuario y contraseña correctas")
+      this.router.navigate(['/dashboard'])
+    } else {
+      console.error("Error al iniciar sesión. usuario o contraseña incorrecta.")
+    }
+  }
 }
