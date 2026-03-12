@@ -10,7 +10,7 @@ export class AuthService {
   async login(email: string, password: string): Promise<boolean> {
     try{
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-      console.log('Usuario logueado:', userCredential.user);
+      console.log('Usuario logueado:', userCredential.user.email);
       return true;
 
     } catch (error) {
