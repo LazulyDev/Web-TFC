@@ -2,36 +2,49 @@ import { Component } from '@angular/core';
 import { inject } from '@angular/core';
 import { NuevaUnidadService } from '../services/nueva-unidad-service';
 import { Unidad } from '../models/Unidad';
+import { Observable } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
+
 @Component({
   selector: 'app-dashboard',
-  imports: [],
+  imports: [AsyncPipe, CommonModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
 export class Dashboard {
-  private nuevaUnidadService = inject(NuevaUnidadService);
+  private UnidadService = inject(NuevaUnidadService);
+  unidades$: Observable<Unidad[]> = this.UnidadService.verUnidades()
 
-  // TODO: eliminar esto
-  unidadPrueba: Unidad = {
-    id: "A-8570",
-    cuerpo: "SAMUR-PC",
-    tipoUnidad: "USVB",
-    estado: "desactivado",
-    cuentaUsuario: "roberto@sanitario.com"
-  };
+  obtenerColorcuerpo(cuerpo: string) {
+    const normalized = cuerpo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-  ngOnInit() {
-    this.probarRegistro();
+    switch (normalized) {
+      case "policia municipal":  // Now matches "policía municipal" after normalization
+        return "policia";
+      case "bomberos":
+        return "bomberos";
+      case "samur-pc":
+        return "sanitarios";
+      default:
+        return "gray-800";
+    }
   }
 
-  // TODO: eliminar esto
-  probarRegistro() {
-    console.log("iniciando prueba de registro")
-    try {
-      this.nuevaUnidadService.nuevaUnidad(this.unidadPrueba)
-      console.log("unidad añadida con éxito, verificar Firebase")
-    } catch (error) {
-      console.log(`error al mandar la unidad: ${error}`)
-    }
+
+  ngOnInit() {
+    this.registrarUnidadesDePrueba();
+  }
+
+  registrarUnidadesDePrueba() {
+    const unidades: Unidad[] = [
+      { id: "P-761", cuerpo: "Policía Municipal", tipoUnidad: "Patrulla", estado: "disponible", cuentaUsuario: "agente@policia.com" },
+      { id: "BO-71", cuerpo: "Bomberos", tipoUnidad: "Bomba Móvil", estado: "desactivado", cuentaUsuario: "roberto@bombero.com" },
+      { id: "UPR-8027", cuerpo: "SAMUR-PC", tipoUnidad: "USVB", estado: "disponible", cuentaUsuario: "roberto@sanitario.com" }
+    ];
+
+    unidades.forEach(u => {
+      this.UnidadService.nuevaUnidad(u)
+    });
   }
 }

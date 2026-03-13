@@ -139,80 +139,40 @@
                         Rojo -> Bomberos
                         Amarillo -> Emergencias Sanitarias-->
 
-                    <!-- TODO: hacer una lista dinámica con las unidades -->
+                    <!-- lista dinámica para que se puedan visualizar cada una de las unidades  -->
                     <div class="row">
-
-                        <!-- ejemplo de card para Policía-->
+                        @for (unidad of (unidades$ | async); track unidad.id) {
                         <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-policia shadow h-100 py-2">
-                                <div class="card-body">
+                            <div class="card shadow h-100 py-2"
+                                [ngClass]="'border-left-' + obtenerColorcuerpo(unidad.cuerpo)">
+                                <div class="card-body" style="cursor: pointer;"> <!--(click)="gestionarUnidad(unidad.id)"-->
                                     <div class="row no-gutters align-items-center">
                                         <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-policia text-uppercase mb-1">
-                                                Policía Municipal</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800 letra-personalizada">P-761</div>
+                                            <div class="text-xs font-weight-bold text-uppercase mb-1"
+                                                [ngClass]="'text-' + obtenerColorcuerpo(unidad.cuerpo)">
+                                                {{ unidad.cuerpo }}
+                                            </div>
+                                            <div class="h5 mb-0 font-weight-bold text-gray-800 letra-personalizada">
+                                                {{ unidad.id }}
+                                            </div>
+                                            <div class="text-xs mt-1 text-gray-600">
+                                                Estado: <strong>{{ unidad.estado }}</strong>
+                                            </div>
                                         </div>
                                         <div class="col-auto">
-                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                            <i class="fas fa-2x text-gray-300"
+                                                [ngClass]="unidad.cuerpo === 'SAMUR-PC' ? 'fa-ambulance' : 'fa-shield-alt'">
+                                            </i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Ejemplo de card para bomberos -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-bomberos shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-bomberos text-uppercase mb-1">
-                                                Bomberos</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800 letra-personalizada">BO-71</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        } @empty {
+                        <div class="col-12 text-center">
+                            <p class="text-gray-500">No hay unidades registradas en el sistema.</p>
                         </div>
-
-                        <!-- Ejemplo de card para Emergencias Sanitarias -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-sanitarias shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-sanitarias text-uppercase mb-1">
-                                                SAMUR-PC</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800 letra-personalizada">UPR-8027</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Pending Requests Card Example -->
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card border-left-warning shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Pending Requests</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-comments fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        }
                     </div>
 
                     <div class="row" style="min-height: calc(100vh - 7.5rem);">
@@ -275,14 +235,14 @@
                                 <div class="card-body">
 
                                     <!--card para una emergencia de importancia normal-->
-                                        <div class="mb-4">
-                                            <div class="card bg-primary text-white shadow">
-                                                <div class="card-body">
-                                                    Emergencia normal
-                                                    <div class="text-white-50 small">#4e73df</div>
-                                                </div>
+                                    <div class="mb-4">
+                                        <div class="card bg-primary text-white shadow">
+                                            <div class="card-body">
+                                                Emergencia normal
+                                                <div class="text-white-50 small">#4e73df</div>
                                             </div>
                                         </div>
+                                    </div>
 
                                     <!-- card para emergencias moderadas -->
                                     <div class="mb-4">

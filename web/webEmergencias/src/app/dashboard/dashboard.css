@@ -1548,7 +1548,7 @@ a.text-info:hover, a.text-info:focus {
   color: #258391 !important;
 }
 
-.text-sanitarias {
+.text-sanitarios {
   color: #f6c23e !important;
 }
 
@@ -1778,7 +1778,7 @@ a:focus {
   border-left: 0.25rem solid #36b9cc !important;
 }
 
-.border-left-sanitarias {
+.border-left-sanitarios {
   border-left: 0.25rem solid #f6c23e !important;
 }
 
