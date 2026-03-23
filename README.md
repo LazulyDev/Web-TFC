@@ -69,6 +69,7 @@ git clone https://github.com/LazulyDev/Web-TFC.git
 
 # Acceder al proyecto
 cd Web-TFC
+```
 
 ## 🗂️ Versionado
 
