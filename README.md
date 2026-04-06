@@ -25,7 +25,7 @@ El proyecto se encuentra actualmente en fase temprana, con una base funcional en
 
 - Versión actual: `v0.1`
 - Estado: Base inicial implementada
-- Primer despliegue previsto: **3 de abril de 2026**
+- Primer despliegue previsto: **6 de abril de 2026**
 
 ---
 
