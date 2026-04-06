@@ -1,53 +1,153 @@
-import { Component } from '@angular/core';
-import { inject } from '@angular/core';
-import { NuevaUnidadService } from '../services/nueva-unidad-service';
-import { Unidad } from '../models/Unidad';
-import { Observable } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Unidad } from '../models/Unidad';
+import { NuevaUnidadService } from '../services/nueva-unidad-service';
+
+interface Incidente {
+  id: string;
+  identificador: number;
+  nombreCompleto: string;
+  telefono: string;
+  tipoSangre?: string;
+  descripcionEmergencia: string;
+  estatus: 'normal' | 'moderado' | 'urgente' | 'prioritario';
+}
 
 @Component({
   selector: 'app-dashboard',
-  imports: [AsyncPipe, CommonModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
+  styleUrl: './dashboard.css'
 })
-export class Dashboard {
-  private UnidadService = inject(NuevaUnidadService);
-  unidades$: Observable<Unidad[]> = this.UnidadService.verUnidades()
+export class Dashboard implements OnInit {
+  private unidadService = inject(NuevaUnidadService);
 
-  // VERIFICA EL CUERPO AL QUE PERTENECE LA UNIDAD Y LE ASIGNA UN COLOR
-  obtenerColorcuerpo(cuerpo: string) {
-    const normalized = cuerpo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  unidades: Unidad[] = [];
+  unidadesFiltradas: Unidad[] = [];
+  unidadSeleccionada: Unidad | null = null;
 
-    switch (normalized) {
-      case "policia municipal": 
-        return "policia";
-      case "bomberos":
-        return "bomberos";
-      case "samur-pc":
-        return "sanitarios";
+  filtroCuerpo = '';
+  filtroEstado = '';
+
+  incidentesActivos: Incidente[] = [
+    {
+      id: 'INC-001',
+      identificador: 1,
+      nombreCompleto: 'Fulanito Detal',
+      telefono: '123 12 12 12',
+      tipoSangre: '0+',
+      descripcionEmergencia: 'Caída en vía pública con posible traumatismo.',
+      estatus: 'normal'
+    },
+    {
+      id: 'INC-002',
+      identificador: 2,
+      nombreCompleto: 'María López',
+      telefono: '654 88 11 22',
+      descripcionEmergencia: 'Incendio en vivienda con humo en escalera.',
+      estatus: 'prioritario'
+    },
+    {
+      id: 'INC-003',
+      identificador: 3,
+      nombreCompleto: 'Carlos Pérez',
+      telefono: '622 45 67 90',
+      descripcionEmergencia: 'Accidente de tráfico con heridos conscientes.',
+      estatus: 'urgente'
+    }
+  ];
+
+  get totalUnidades(): number {
+    return this.unidades.length;
+  }
+
+  ngOnInit(): void {
+    this.cargarUnidadesDesdeFirebase();
+  }
+
+  cargarUnidadesDesdeFirebase(): void {
+    this.unidadService.verUnidades().subscribe({
+      next: (unidades: Unidad[]) => {
+        this.unidades = unidades;
+        this.aplicarFiltros();
+      },
+      error: (error) => {
+        console.error('error cargando unidades desde firebase', error);
+      }
+    });
+  }
+
+  aplicarFiltros(): void {
+    this.unidadesFiltradas = this.unidades.filter((unidad) => {
+      const coincideCuerpo =
+        !this.filtroCuerpo || unidad.cuerpo === this.filtroCuerpo;
+
+      const coincideEstado =
+        !this.filtroEstado || unidad.estado === this.filtroEstado;
+
+      return coincideCuerpo && coincideEstado;
+    });
+  }
+
+  limpiarFiltros(): void {
+    this.filtroCuerpo = '';
+    this.filtroEstado = '';
+    this.aplicarFiltros();
+  }
+
+  seleccionarUnidad(unidad: Unidad): void {
+    this.unidadSeleccionada = unidad;
+  }
+
+  verIncidente(incidente: Incidente): void {
+    console.log('incidente seleccionado', incidente);
+  }
+
+  contarPorEstado(estado: string): number {
+    return this.unidades.filter((unidad) => unidad.estado === estado).length;
+  }
+
+  obtenerClaseCuerpo(cuerpo: string): string {
+    switch (cuerpo) {
+      case 'Policía Municipal':
+        return 'policia';
+      case 'SAMUR-PC':
+        return 'samur';
+      case 'Bomberos':
+        return 'bomberos';
       default:
-        return "gray-800";
+        return 'policia';
+    }
+  }
+
+  obtenerBadgeEstado(estado: string): string {
+    switch (estado) {
+      case 'activada':
+        return 'text-bg-success';
+      case 'desactivada':
+        return 'text-bg-secondary';
+      case 'no disponible':
+        return 'text-bg-warning';
+      default:
+        return 'text-bg-light';
     }
   }
 
 
-  ngOnInit() {
-    this.registrarUnidadesDePrueba();
-  }
-
-  // TODO: esto tiene que eliminarse. se ha usado para hacer la prueba.
-  registrarUnidadesDePrueba() {
-    const unidades: Unidad[] = [
-      { id: "P-761", cuerpo: "Policía Municipal", tipoUnidad: "Patrulla", estado: "disponible", cuentaUsuario: "agente@policia.com" },
-      { id: "BO-71", cuerpo: "Bomberos", tipoUnidad: "Bomba Móvil", estado: "desactivado", cuentaUsuario: "roberto@bombero.com" },
-      { id: "UPR-8027", cuerpo: "SAMUR-PC", tipoUnidad: "UPR", estado: "disponible", cuentaUsuario: "roberto@sanitario.com" }, 
-      { id: "A-8532", cuerpo: "SAMUR-PC", tipoUnidad: "USVB", estado: "no disponible", cuentaUsuario: "ejemplo@sanitario.emergencias.com"}
-    ];
-
-    unidades.forEach(u => {
-      this.UnidadService.nuevaUnidad(u)
-    });
+  obtenerBadgeIncidente(estatus: string): string {
+    switch (estatus) {
+      case 'normal':
+        return 'text-bg-primary';
+      case 'moderado':
+        return 'text-bg-warning';
+      case 'urgente':
+        return 'text-bg-orange-custom';
+      case 'prioritario':
+        return 'text-bg-danger';
+      default:
+        return 'text-bg-secondary';
+    }
   }
 }

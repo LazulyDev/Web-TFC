@@ -1,281 +1,287 @@
-<body id="page-top">
+<div class="dashboard-page container-fluid py-4">
 
-    <!-- Page Wrapper -->
-    <div id="wrapper">
+  <!-- cabecera -->
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+    <div>
+      <p class="text-uppercase text-secondary fw-semibold small mb-1">Centro de coordinación</p>
+      <h1 class="h3 fw-bold mb-1">Dashboard de emergencias</h1>
+      <p class="text-secondary mb-0">
+        Supervisión en tiempo real de incidentes, unidades y disponibilidad operativa.
+      </p>
+    </div>
 
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <div class="d-flex flex-wrap gap-2">
+      <button class="btn btn-outline-primary">
+        <i class="bi bi-arrow-clockwise me-2"></i>Actualizar
+      </button>
+      <button class="btn btn-danger">
+        <i class="bi bi-broadcast-pin me-2"></i>Emitir aviso
+      </button>
+    </div>
+  </div>
 
-            <!-- Iconografías TODO: cambiar decoración al logo del sistema-->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
+  <!-- resumen superior -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card dashboard-kpi border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center justify-content-between">
+          <div>
+            <p class="kpi-label mb-1">Incidentes activos</p>
+            <h2 class="kpi-value mb-0">{{ incidentesActivos.length }}</h2>
+          </div>
+          <div class="kpi-icon bg-danger-subtle text-danger">
+            <i class="bi bi-exclamation-octagon"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card dashboard-kpi border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center justify-content-between">
+          <div>
+            <p class="kpi-label mb-1">Unidades activadas</p>
+            <h2 class="kpi-value mb-0">{{ contarPorEstado('activada') }}</h2>
+          </div>
+          <div class="kpi-icon bg-success-subtle text-success">
+            <i class="bi bi-check2-circle"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card dashboard-kpi border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center justify-content-between">
+          <div>
+            <p class="kpi-label mb-1">No disponibles</p>
+            <h2 class="kpi-value mb-0">{{ contarPorEstado('no disponible') }}</h2>
+          </div>
+          <div class="kpi-icon bg-warning-subtle text-warning">
+            <i class="bi bi-slash-circle"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-3">
+      <div class="card dashboard-kpi border-0 shadow-sm h-100">
+        <div class="card-body d-flex align-items-center justify-content-between">
+          <div>
+            <p class="kpi-label mb-1">Unidades totales</p>
+            <h2 class="kpi-value mb-0">{{ totalUnidades }}</h2>
+          </div>
+          <div class="kpi-icon bg-primary-subtle text-primary">
+            <i class="bi bi-truck"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- columna izquierda -->
+    <div class="col-12 col-xl-3">
+
+      <!-- filtros -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <h2 class="h6 fw-bold mb-3">Filtros operativos</h2>
+
+          <div class="mb-3">
+            <label class="form-label">Cuerpo</label>
+            <select class="form-select" [(ngModel)]="filtroCuerpo">
+              <option value="">Todos</option>
+              <option value="Policía Municipal">Policía Municipal</option>
+              <option value="Bomberos">Bomberos</option>
+              <option value="SAMUR-PC">SAMUR-PC</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Estado</label>
+            <select class="form-select" [(ngModel)]="filtroEstado">
+              <option value="">Todos</option>
+              <option value="activada">Activada</option>
+              <option value="desactivada">Desactivada</option>
+              <option value="no disponible">No disponible</option>
+            </select>
+          </div>
+
+          <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+
+      <!-- unidades -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h6 fw-bold mb-0">Unidades disponibles</h2>
+            <span class="badge text-bg-light">{{ unidadesFiltradas.length }}</span>
+          </div>
+        </div>
+
+        <div class="card-body pt-3">
+          <div class="units-list">
+            @for (unidad of unidadesFiltradas; track unidad.id) {
+              <button
+                type="button"
+                class="unit-card w-100 text-start mb-3"
+                [class.unit-card--selected]="unidadSeleccionada?.id === unidad.id"
+                (click)="seleccionarUnidad(unidad)"
+              >
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                      <span class="body-dot" [ngClass]="'body-dot--' + obtenerClaseCuerpo(unidad.cuerpo)"></span>
+                      <span class="fw-semibold">{{ unidad.id }}</span>
+                    </div>
+
+                    <div class="small text-secondary mb-1">{{ unidad.cuerpo }}</div>
+                    <div class="small text-secondary">Tipo: {{ unidad.tipoUnidad }}</div>
+                  </div>
+
+                  <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
+                    {{ unidad.estado }}
+                  </span>
                 </div>
-                <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div>
-            </a>
+              </button>
+            } @empty {
+              <div class="text-center text-secondary py-4">
+                No hay unidades registradas.
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
 
-            <!-- divisor 01-->
-            <hr class="sidebar-divider my-0">
+    <!-- centro -->
+    <div class="col-12 col-xl-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="h6 fw-bold mb-1">Mapa operativo</h2>
+              <p class="text-secondary small mb-0">
+                Vista central para localización y asignación de recursos.
+              </p>
+            </div>
+            <span class="badge text-bg-primary">Preparado para integración</span>
+          </div>
+        </div>
 
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="index.html">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
-
-            <!-- Divisor 02-->
-            <hr class="sidebar-divider">
-
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Interfaz
+        <div class="card-body">
+          <div class="map-placeholder">
+            <div class="text-center">
+              <i class="bi bi-geo-alt-fill map-icon mb-3"></i>
+              <h3 class="h5 fw-bold">Zona de mapa</h3>
+              <p class="text-secondary mb-0">
+                Meter Google Maps para visualizar incidencias y unidades.
+              </p>
             </div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Unidades disponibles</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Components:</h6>
-                        <a class="collapse-item" href="buttons.html">Buttons</a>
-                        <a class="collapse-item" href="cards.html">Cards</a>
-                    </div>
+            <div class="mock-markers marker marker--danger">INC</div>
+            <div class="mock-markers marker marker--primary">POL</div>
+            <div class="mock-markers marker marker--warning">SAM</div>
+            <div class="mock-markers marker marker--fire">BOM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- derecha -->
+    <div class="col-12 col-xl-3">
+
+      <!-- incidentes -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pb-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="h6 fw-bold mb-0">Incidentes activos</h2>
+            <span class="badge text-bg-danger">{{ incidentesActivos.length }}</span>
+          </div>
+        </div>
+
+        <div class="card-body pt-3">
+          @for (incidente of incidentesActivos; track incidente.id) {
+            <div class="incident-card mb-3" [ngClass]="'incident-card--' + incidente.estatus">
+              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <div class="fw-semibold">{{ incidente.nombreCompleto }}</div>
+                  <div class="small text-secondary">ID: {{ incidente.identificador }}</div>
                 </div>
-            </li>
+                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">
+                  {{ incidente.estatus }}
+                </span>
+              </div>
 
-            <!-- Nav Item - Utilities Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
-                    aria-expanded="true" aria-controls="collapseUtilities">
-                    <i class="fas fa-fw fa-wrench"></i>
-                    <span>Utilities</span>
-                </a>
-                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities"
-                    data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Utilities:</h6>
-                        <a class="collapse-item" href="utilities-color.html">Colors</a>
-                        <a class="collapse-item" href="utilities-border.html">Borders</a>
-                        <a class="collapse-item" href="utilities-animation.html">Animations</a>
-                        <a class="collapse-item" href="utilities-other.html">Other</a>
-                    </div>
-                </div>
-            </li>
+              <div class="small mb-2">
+                <i class="bi bi-telephone me-2"></i>{{ incidente.telefono }}
+              </div>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
+              <div class="small text-secondary mb-3">
+                {{ incidente.descripcionEmergencia }}
+              </div>
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Addons
+              <button class="btn btn-sm btn-outline-dark w-100" (click)="verIncidente(incidente)">
+                Ver incidente
+              </button>
+            </div>
+          } @empty {
+            <div class="text-center text-secondary py-4">
+              No hay incidentes activos.
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- detalle unidad -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pb-0">
+          <h2 class="h6 fw-bold mb-0">Detalle de unidad</h2>
+        </div>
+
+        <div class="card-body pt-3">
+          @if (unidadSeleccionada) {
+            <div class="mb-2">
+              <div class="small text-secondary">Identificador</div>
+              <div class="fw-semibold">{{ unidadSeleccionada.id }}</div>
             </div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Pages</span>
-                </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Login Screens:</h6>
-                        <a class="collapse-item" href="login.html">Login</a>
-                        <a class="collapse-item" href="register.html">Register</a>
-                        <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
-                        <div class="collapse-divider"></div>
-                        <h6 class="collapse-header">Other Pages:</h6>
-                        <a class="collapse-item" href="404.html">404 Page</a>
-                        <a class="collapse-item" href="blank.html">Blank Page</a>
-                    </div>
-                </div>
-            </li>
-
-            <!-- Nav Item - Charts -->
-            <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span></a>
-            </li>
-
-            <!-- Nav Item - Tables -->
-            <li class="nav-item">
-                <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            <div class="mb-2">
+              <div class="small text-secondary">Cuerpo</div>
+              <div class="fw-semibold">{{ unidadSeleccionada.cuerpo }}</div>
             </div>
-        </ul>
-        <!--Final del sidebar -->
 
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
+            <div class="mb-2">
+              <div class="small text-secondary">Tipo de unidad</div>
+              <div class="fw-semibold">{{ unidadSeleccionada.tipoUnidad }}</div>
+            </div>
 
-            <!-- Main Content -->
-            <div id="content">
+            <div class="mb-3">
+              <div class="small text-secondary">Cuenta de usuario</div>
+              <div class="fw-semibold">{{ unidadSeleccionada.cuentaUsuario }}</div>
+            </div>
 
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary">
+                <i class="bi bi-send me-2"></i>Asignar a incidente
+              </button>
+              <button class="btn btn-outline-secondary">
+                <i class="bi bi-geo me-2"></i>Localizar en mapa
+              </button>
+            </div>
+          } @else {
+            <div class="text-center text-secondary py-4">
+              Selecciona una unidad para ver su detalle.
+            </div>
+          }
+        </div>
+      </div>
 
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-                    </div>
-
-                    <!-- Cards que serán usadas para la lista de unidades disponibles 
-                        azul Oscuro -> Policía 
-                        Rojo -> Bomberos
-                        Amarillo -> Emergencias Sanitarias-->
-
-                    <!-- lista dinámica para que se puedan visualizar cada una de las unidades  -->
-                    <div class="row">
-                        @for (unidad of (unidades$ | async); track unidad.id) {
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card shadow h-100 py-2"
-                                [ngClass]="'border-left-' + obtenerColorcuerpo(unidad.cuerpo)">
-                                <div class="card-body" style="cursor: pointer;"> <!--(click)="gestionarUnidad(unidad.id)"-->
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-uppercase mb-1"
-                                                [ngClass]="'text-' + obtenerColorcuerpo(unidad.cuerpo)">
-                                                {{ unidad.cuerpo }}
-                                            </div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800 letra-personalizada">
-                                                {{ unidad.id }}
-                                            </div>
-                                            <div class="text-xs mt-1 text-gray-600">
-                                                Estado: <strong>{{ unidad.estado }}</strong>
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-2x text-gray-300"
-                                                [ngClass]="unidad.cuerpo === 'SAMUR-PC' ? 'fa-ambulance' : 'fa-shield-alt'">
-                                            </i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        } @empty {
-                        <div class="col-12 text-center">
-                            <p class="text-gray-500">No hay unidades registradas en el sistema.</p>
-                        </div>
-                        }
-                    </div>
-
-                    <div class="row" style="min-height: calc(100vh - 7.5rem);">
-
-                        <!-- Area localización unidades -->
-                        <div class="col-xl-8 col-lg-7 d-flex flex-column">
-                            <div class="card shadow mb-4 flex-grow-1">
-                                <!-- Card Header -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Ubicación de Unidades</h6>
-                                    <div class="dropdown no-arrow">
-                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                            aria-labelledby="dropdownMenuLink">
-                                            <div class="dropdown-header">Dropdown Header:</div>
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Card Body - Mapa -->
-                                <div class="card-body">
-                                    <div class="chart-area">
-                                        <canvas id="myAreaChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Contenedor de los avisos disponibles -->
-                        <div class="col-xl-4 col-lg-5 d-flex flex-column">
-                            <div class="card shadow mb-4 flex-grow-1">
-                                <!-- Card Header - Dropdown -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Avisos Entrantes</h6>
-                                    <div class="dropdown no-arrow">
-                                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                                            aria-labelledby="dropdownMenuLink">
-                                            <div class="dropdown-header">Dropdown Header:</div>
-                                            <a class="dropdown-item" href="#">Action</a>
-                                            <a class="dropdown-item" href="#">Another action</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="#">Something else here</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Card Body -->
-                                <!-- TODO: hacer una lista cinámica con los avisos -->
-                                <div class="card-body">
-
-                                    <!--card para una emergencia de importancia normal-->
-                                    <div class="mb-4">
-                                        <div class="card bg-primary text-white shadow">
-                                            <div class="card-body">
-                                                Emergencia normal
-                                                <div class="text-white-50 small">#4e73df</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- card para emergencias moderadas -->
-                                    <div class="mb-4">
-                                        <div class="card bg-warning text-white shadow">
-                                            <div class="card-body">
-                                                Emergencia Moderada
-                                                <div class="text-white-50 small">#f6c23e</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Card para emergencias Graves -->
-                                    <div class="mb-4">
-                                        <div class="card bg-danger text-white shadow">
-                                            <div class="card-body">
-                                                Emergencia Prioritaria
-                                                <div class="text-white-50 small">#e74a3b</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-4 text-center small">
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-primary"></i> Direct
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-success"></i> Social
-                                        </span>
-                                        <span class="mr-2">
-                                            <i class="fas fa-circle text-info"></i> Referral
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    </div>
+  </div>
+</div>
