@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-inicio-sesion',
-  standalone: true, // Importante si usas Angular 17+
+  standalone: true,
   imports: [],
   templateUrl: './inicio-sesion.html',
   styleUrl: './inicio-sesion.css',
@@ -24,18 +24,17 @@ export class InicioSesion implements OnInit {
     'img/inicio-sesion/ambulancias.jpg',
   ];
 
-  // se ejecuta cuando el componente se inicia
   ngOnInit(): void {
     this.fondoSeleccionado = this.elegirFondoAleatorio();
   }
 
-  // escoje el fondo que tiene que mostrar
+  // ESCOJE EL FONDO QUE VA A MOSTRAR
   elegirFondoAleatorio(): string {
     const indice = Math.floor(Math.random() * this.listaFondos.length);
     return this.listaFondos[indice];
   }
 
-  // estraccion de la información para el inicio de sesión
+  // ESTRACCIÓN DE INFORMACIÓN PARA EL INICIO DE SESISÓN
   usr= (nombre: string) => {
     if(nombre.includes("@") || nombre.includes(".com")){
       return nombre
@@ -44,8 +43,7 @@ export class InicioSesion implements OnInit {
 
   pswd: string = ""
 
-  // inicio de sesión
-  
+  // INICIO DE SESIÓN
   async iniciarSesion(usrname: string, pswd: string): Promise<void> {
     const esLoginCorrecto = await this.authService.login(usrname, pswd);
     if (esLoginCorrecto) {

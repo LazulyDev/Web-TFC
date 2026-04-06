@@ -9,7 +9,7 @@ import { EMPTY, Observable, throwError } from 'rxjs';
 export class NuevaUnidadService {
   private bbdd = inject(Database)
 
-  // función para crear una nueva unidad en la base de datos
+  // FUNCIÓN PARA CREAR UNA NUEVA UNIDAD EN LA BASE DE DATOS
   nuevaUnidad(unidad: Unidad){
     try {
       const unidadRef = ref(this.bbdd, `unidades/${unidad.id}`)
@@ -21,7 +21,7 @@ export class NuevaUnidadService {
     }
   }
   
-  // funcion para ver todas la unidades a la vez
+  // FUNCION PARA VER TODAS LAS UNIDADES A LA VEZ
   verUnidades(): Observable<Unidad[]>{
     try {
       const todasLasUnidadesRef=  ref(this.bbdd, 'unidades')
@@ -34,6 +34,6 @@ export class NuevaUnidadService {
     }
   }
 
-  // funcion para buscar una sola unidad
+  // FUNCIÓN PARA BUSCAR UNA SOLA UNIDAD
   buscarUnidadPorId(){}
 }
