@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Unidad } from '../models/Unidad';
+import { NuevaUnidadService } from '../services/nueva-unidad-service';
 
 interface Incidente {
   id: string;
@@ -21,6 +22,8 @@ interface Incidente {
   styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit {
+  private unidadService = inject(NuevaUnidadService);
+
   unidades: Unidad[] = [];
   unidadesFiltradas: Unidad[] = [];
   unidadSeleccionada: Unidad | null = null;
@@ -61,41 +64,19 @@ export class Dashboard implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargarUnidadesMock();
-    this.aplicarFiltros();
+    this.cargarUnidadesDesdeFirebase();
   }
 
-  cargarUnidadesMock(): void {
-    this.unidades = [
-      {
-        id: 'POL-8027',
-        cuerpo: 'Policía Municipal',
-        tipoUnidad: 'Patrulla',
-        estado: 'activada',
-        cuentaUsuario: 'policia1@cargo.emergencias.com'
+  cargarUnidadesDesdeFirebase(): void {
+    this.unidadService.verUnidades().subscribe({
+      next: (unidades: Unidad[]) => {
+        this.unidades = unidades;
+        this.aplicarFiltros();
       },
-      {
-        id: 'BOM-1120',
-        cuerpo: 'Bomberos',
-        tipoUnidad: 'Autobomba',
-        estado: 'no disponible',
-        cuentaUsuario: 'bombero1@cargo.emergencias.com'
-      },
-      {
-        id: 'SAM-3015',
-        cuerpo: 'SAMUR-PC',
-        tipoUnidad: 'UVI móvil',
-        estado: 'activada',
-        cuentaUsuario: 'sanitario1@cargo.emergencias.com'
-      },
-      {
-        id: 'POL-7781',
-        cuerpo: 'Policía Municipal',
-        tipoUnidad: 'Moto',
-        estado: 'desactivada',
-        cuentaUsuario: 'policia2@cargo.emergencias.com'
+      error: (error) => {
+        console.error('error cargando unidades desde firebase', error);
       }
-    ];
+    });
   }
 
   aplicarFiltros(): void {
