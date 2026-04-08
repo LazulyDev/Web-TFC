@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Unidad } from '../models/Unidad';
 import { NuevaUnidadService } from '../services/nueva-unidad-service';
+import { MandarAvisosService } from '../services/mandar-avisos-service';
 
 interface Incidente {
   id: string;
@@ -23,6 +24,7 @@ interface Incidente {
 })
 export class Dashboard implements OnInit {
   private unidadService = inject(NuevaUnidadService);
+  private mandarAvisosService = inject(MandarAvisosService)
 
   unidades: Unidad[] = [];
   unidadesFiltradas: Unidad[] = [];
@@ -150,4 +152,22 @@ export class Dashboard implements OnInit {
         return 'text-bg-secondary';
     }
   }
+
+  /**
+   * Envía un aviso de emergencia a una unidad específica
+   * @param unidadId:       ID de la unidad (ej: BO-71)
+   * @param contenido:      Cuerpo/descripción del aviso
+   * @param coordenadas:    Coordenadas como string (ej: "40.4168,-3.7038") SERÁN AÑADIDAS EN UN FUTURO
+   */
+  mandarAvisos(unidadId: string, contenido: string, coordenadas: string) {
+    this.mandarAvisosService.enviarAviso(unidadId, contenido, coordenadas).subscribe(
+      (respuesta: any) => {
+        console.log('Mensaje enviado con éxito:', respuesta);
+      },
+      (error: any) => {
+        console.error(`ERROR AL MANDAR EL MENSAJE: ${error.message}`, error);
+      }
+    );
+  }
 }
+

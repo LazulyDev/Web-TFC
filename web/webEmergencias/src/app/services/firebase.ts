@@ -5,5 +5,8 @@ import { Auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signO
   providedIn: 'root',
 })
 export class Firebase {
+  static messaging() {
+    throw new Error('Method not implemented.');
+  }
   
 }
