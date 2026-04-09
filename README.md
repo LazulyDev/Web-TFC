@@ -46,12 +46,18 @@ Su función es tener un control de los usuarios que van a usar esta web ya que s
 
 `[IMAGEN DEL LOGIN]`
 
+Como detalle interesante el login busca una imagen de forma aleatoria y la cambia. De esta forma podemos tener un login dinámico y estéticamente más interesante.
+
+`[IMAGEN DEL LOGIN]`
+
+`[IMAGEN DEL LOGIN]`
+
 ##### Panel de Control
 Sirve para: 
-- Visualizar las incidencias activas en la ciudad.
-- Visualizar las unidades disponibles.
-- Asignar avisos a las unidades.
-- visualizar la geolocalización de las unidades
+- ⚠️ Visualizar las incidencias activas en la ciudad.
+- 🔭 Visualizar las unidades disponibles.
+- 🦺 Asignar avisos a las unidades.
+- 🗺️ visualizar la geolocalización de las unidades
 - 
 `[IMAGEN DEL PANEL DE CONTROL]`
   
