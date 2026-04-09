@@ -9,9 +9,12 @@ export const enviarAlerta = functions.https.onRequest((req, res) => {
   return corsMiddleware(req, res, async () => {
     const {mensaje, unidadID} = req.body;
 
+    // mensaje a enviar
     const payload = {
       topic: unidadID,
-      data: {aviso: mensaje},
+      data: {
+        aviso: mensaje,
+        unidadID: unidadID},
       android: {
         priority: "high" as const,
       },
