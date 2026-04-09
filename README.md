@@ -35,9 +35,34 @@ El proyecto se encuentra actualmente en fase temprana, con una base funcional en
 - HTML5
 - CSS3
 - TypeScript
+#### Componentes de la web:
+##### Landing Page
+Su función en crear una buena primera impresión de este servicio y explicar por encima qué queremos lograr.
 
+`[IMAGEN DE LA LANDING PAGE]`
+
+##### Log-In
+Su función es tener un control de los usuarios que van a usar esta web ya que son los que van a coordinar las emergencias. En caso de que se de de alta un usuario que no sea coordinador el login rechazará el acceso al Panel de Control.
+
+`[IMAGEN DEL LOGIN]`
+
+##### Panel de Control
+Sirve para: 
+- Visualizar las incidencias activas en la ciudad.
+- Visualizar las unidades disponibles.
+- Asignar avisos a las unidades.
+- visualizar la geolocalización de las unidades
+- 
+`[IMAGEN DEL PANEL DE CONTROL]`
+  
 ### ⚙️ Backend
-- Base de datos Firebase
+Se ha decidido usar el servicio de servidores en la nube Google Firebase para todo el backend
+- 👮‍♂️ **Firebase Authenticator**: Es el encargado de gestionar los usuarios, las contraseñas y permitir o prohibir el acceso al Panel de Control.
+- 🔥 **Firebase Realtime Database**: Es donde se almacena la información de las unidades así como su geolocalización en constante cambio.
+- 💾 **Firebase Firestore**: Es el lugar donde se almacena la información del aviso así como el lugar del suceso.
+- ⚒️ **Firebase Functions**: Es el servicio que va a crear un canal de comunicación entre los coordinadores en el Panel de Control y las unidades de intervención usando para ello su identificador (ejemplo: UPR-8027).
+- 💬 **Firebase Messaging**: Será el encargado de mandar un mensaje con el contenido del aviso a las unidades de intervención. Dichas unidades verán el mensaje en una notificación persistente en sus teléfonos móviles de dotación.
+  `[IMAGEN DEL SERVIDOR FIREBASE]`
 
 ### 📦 Control de versiones
 - Git
@@ -59,8 +84,6 @@ El proyecto sigue una estructura modular  de Angular orientada a escalabilidad:
 - Preparado para integración con cliente móvil
 - Diseño enfocado a mantenibilidad y evolución futura
 
----
-
 ## 📦 Instalación
 
 ```bash
@@ -79,3 +102,8 @@ El proyecto sigue versionado semántico adaptado a fase inicial:
 |--------|--------------|--------------------------------|----------------|
 | v0.1   | En desarrollo | Base inicial del proyecto      | Marzo 2026     |
 | v1.0   | Planificada   | Primer despliegue funcional    | 3 Abril 2026   |
+
+## 📄 Documentación Asociada al TFG
+Puede leer la memoria de este Trabajo de Fin de Grado en el siguiente enlace:
+
+`[ENLACE DE DESCARGA (MEMORIA NO TERMINADA)]`
