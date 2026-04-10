@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Unidad } from '../models/Unidad';
 import { NuevaUnidadService } from '../services/nueva-unidad-service';
 import { MandarAvisosService } from '../services/mandar-avisos-service';
+import { RecibirAvisosService } from '../services/recibir.avisos.service';
 
 interface Incidente {
   id: string;
@@ -25,6 +26,7 @@ interface Incidente {
 export class Dashboard implements OnInit {
   private unidadService = inject(NuevaUnidadService);
   private mandarAvisosService = inject(MandarAvisosService)
+  private recibirAvisosService = inject(RecibirAvisosService)
 
   unidades: Unidad[] = [];
   unidadesFiltradas: Unidad[] = [];
@@ -67,6 +69,7 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.cargarUnidadesDesdeFirebase();
+    this.recibirEmergencias();
   }
 
   cargarUnidadesDesdeFirebase(): void {
@@ -168,6 +171,27 @@ export class Dashboard implements OnInit {
         console.error(`ERROR AL MANDAR EL MENSAJE: ${error.message}`, error);
       }
     );
+  }
+
+  // RECIBE ACTUALIZACIONES DE FIREBASE FIRESTORE PARA LISTAR LAS EMERGENCIAS
+  recibirEmergencias(): void {
+    this.recibirAvisosService.verAvisos().subscribe({
+      next: (datos: any[]) => {
+        this.incidentesActivos = datos.map((item) => ({
+          id: item.id ?? item.identificador?.toString() ?? 'sin-id',
+          identificador: item.identificador ?? 0,
+          nombreCompleto: item.nombreCompleto ?? item.nombre ?? 'Sin nombre',
+          telefono: item.telefono ?? '',
+          tipoSangre: item.tipoSangre,
+          descripcionEmergencia: item.descripcionEmergencia ?? item.descripcion ?? '',
+          estatus: item.estatus ?? 'normal'
+        }));
+        console.log('avisos recibidos', this.incidentesActivos.length);
+      },
+      error: (error) => {
+        console.error('error cargando incidentes desde firebase', error);
+      }
+    });
   }
 }
 
