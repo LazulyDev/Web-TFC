@@ -30,7 +30,7 @@
             ],
             "prerender": false,
             "ssr": false,
-            "outputMode": "browser"
+            "outputMode": "static"
           },
           "configurations": {
             "production": {
