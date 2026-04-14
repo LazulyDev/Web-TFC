@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve -o",
-    "build": "ng build",
+    "build": "ng build --prerender false",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:webEmergencias": "node dist/webEmergencias/server/server.mjs"
