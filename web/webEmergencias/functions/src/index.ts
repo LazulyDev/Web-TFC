@@ -7,14 +7,16 @@ const corsMiddleware = cors({origin: true});
 
 export const enviarAlerta = functions.https.onRequest((req, res) => {
   return corsMiddleware(req, res, async () => {
-    const {mensaje, unidadID} = req.body;
+    const {mensaje, unidadID, coordenadas} = req.body;
 
     // mensaje a enviar
     const payload = {
       topic: unidadID,
       data: {
         aviso: mensaje,
-        unidadID: unidadID},
+        unidadID: unidadID,
+        coordenadas: coordenadas,
+      },
       android: {
         priority: "high" as const,
       },

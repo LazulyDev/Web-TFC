@@ -17,8 +17,9 @@ export class MandarAvisosService {
 
   enviarAviso(unidadId: string, contenido: string, coordenadas: string) {
     const datosAviso = {
-    mensaje: contenido,     // el cuerpo del mensaje que se va a mandar
-    unidadID: unidadId      // La identificación de la unidad
+    mensaje: contenido,       // el cuerpo del mensaje que se va a mandar
+    unidadID: unidadId,       // La identificación de la unidad
+    coordenadas: coordenadas, // coordenadas del aviso
   };
 
     console.log('Enviando aviso a unidad:', datosAviso);
