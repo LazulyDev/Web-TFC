@@ -126,29 +126,32 @@
 
         <div class="card-body pt-3">
           <div class="units-list">
-            @for (unidad of unidadesFiltradas; track unidad.id) {
-              <button
-                type="button"
-                class="unit-card w-100 text-start mb-3"
-                [class.unit-card--selected]="unidadSeleccionada?.id === unidad.id"
-                (click)="seleccionarUnidad(unidad)"
-              >
-                <div class="d-flex justify-content-between align-items-start gap-2">
-                  <div>
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                      <span class="body-dot" [ngClass]="'body-dot--' + obtenerClaseCuerpo(unidad.cuerpo)"></span>
-                      <span class="fw-semibold">{{ unidad.id }}</span>
+            @for (unidad of unidadesFiltradas; track unidad.id) { 
+              <!-- TODO: meter condicional para mostrar las unidades cuando estén Online -->
+              @if (unidad.estado !== "Desactivado") {
+                <button
+                  type="button"
+                  class="unit-card w-100 text-start mb-3"
+                  [class.unit-card--selected]="unidadSeleccionada?.id === unidad.id"
+                  (click)="seleccionarUnidad(unidad)"
+                >
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                      <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="body-dot" [ngClass]="'body-dot--' + obtenerClaseCuerpo(unidad.cuerpo)"></span>
+                        <span class="fw-semibold">{{ unidad.id }}</span>
+                      </div>
+
+                      <div class="small text-secondary mb-1">{{ unidad.cuerpo }}</div>
+                      <div class="small text-secondary">Tipo: {{ unidad.tipoUnidad }}</div>
                     </div>
 
-                    <div class="small text-secondary mb-1">{{ unidad.cuerpo }}</div>
-                    <div class="small text-secondary">Tipo: {{ unidad.tipoUnidad }}</div>
+                    <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
+                      {{ unidad.estado }}
+                    </span>
                   </div>
-
-                  <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
-                    {{ unidad.estado }}
-                  </span>
-                </div>
-              </button>
+                </button>
+              }
             } @empty {
               <div class="text-center text-secondary py-4">
                 No hay unidades registradas.
@@ -266,7 +269,7 @@
             </div>
 
             <div class="d-grid gap-2">
-              <button class="btn btn-primary" (click)="mandarAvisos('SPARTANS', 'Hola Chen! Funciono', '40.418421183214576 -3.7093693716863')" > <!--(click)="mandarAvisos('UPR-8027', 'esta notificación es una prueba', '123123')"-->
+              <button class="btn btn-primary" (click)="mandarAvisos('prueba', 'Este mensaje es una prueba', '40.418421183214576 -3.7093693716863')" > <!--(click)="mandarAvisos('UPR-8027', 'esta notificación es una prueba', '123123')"-->
                 <i class="bi bi-send me-2"></i>Asignar a incidente
               </button>
               <button class="btn btn-outline-secondary">
