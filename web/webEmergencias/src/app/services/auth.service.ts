@@ -16,6 +16,7 @@ export class AuthService {
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       throw error; // Re-lanzar el error para que pueda ser manejado por el componente
+      return false
     }
   } 
 
