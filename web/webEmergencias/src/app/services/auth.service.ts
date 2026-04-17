@@ -19,8 +19,18 @@ export class AuthService {
     }
   } 
 
-  // función para crear un nuevo usuario con email y contraseña
-  async register(email: string, password: string): Promise<boolean> {
-    return true;
+  // FUNCIÓN GUARD PARA VERIFICAR QUE EL USUARIO PUEDE ENTRAR EN LA DASHBOARD
+  async puedeEntrar(): Promise<boolean>{
+    const usuarioUID = this.obtenerUserUID()
+
+    if(usuarioUID != null){
+      return true
+    }
+
+    return false
+  }
+
+  obtenerUserUID(): string | null{ // adquiere el uid del usuario
+    return this.auth.currentUser ? this.auth.currentUser.uid : null
   }
 }
