@@ -361,3 +361,21 @@ a:focus {
   border: none;
   overflow: hidden;
 }
+
+/* MAPA */
+#map {
+  border-radius: 0 0 8px 8px; /* Redondeamos solo la base para que encaje con la card */
+  background-color: #e9ecef;
+}
+
+/* Efecto para que el mapa se vea más "operativo" */
+.card-body p-0 {
+  position: relative;
+}
+
+/* Si quieres que el mapa sea más grande en pantallas XL */
+@media (min-width: 1200px) {
+  .map-container {
+    height: calc(100vh - 250px);
+  }
+}

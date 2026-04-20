@@ -6,6 +6,8 @@ import { NuevaUnidadService } from '../services/nueva-unidad-service';
 import { MandarAvisosService } from '../services/mandar-avisos-service';
 import { RecibirAvisosService } from '../services/recibir.avisos.service';
 
+declare var google : any
+
 interface Incidente {
   id: string;
   identificador: number;
@@ -14,6 +16,8 @@ interface Incidente {
   tipoSangre?: string;
   description: string;
   estatus: 'normal' | 'moderado' | 'urgente' | 'prioritario';
+  lat?: number;
+  lng?: number;
 }
 
 @Component({
@@ -28,8 +32,18 @@ export class Dashboard implements OnInit {
   private mandarAvisosService = inject(MandarAvisosService)
   private recibirAvisosService = inject(RecibirAvisosService)
 
+  // propiedades para el modal para la ventana emergente para asignar avisos
   incidenteSeleccionadoModal: Incidente | null = null;
   unidadSeleccionadaModal: Unidad | null = null;
+
+  // propiedades para el Mapa
+  mapa: any
+  apiCargada = false
+
+  // listas de las unidades que se van a mostrar en el mapa
+  // Diccionarios para tener localizados los marcadores por su ID
+  marcadoresUnidades: { [id: string]: any } = {};
+  marcadoresIncidentes: { [id: string]: any } = {};   
 
   unidades: Unidad[] = [];
   unidadesFiltradas: Unidad[] = [];
@@ -73,6 +87,10 @@ export class Dashboard implements OnInit {
   ngOnInit(): void {
     this.cargarUnidadesDesdeFirebase();
     this.recibirEmergencias();
+
+    setTimeout(() => {
+    this.renderizarMapa();
+  }, 1000);
   }
 
   cargarUnidadesDesdeFirebase(): void {
@@ -80,6 +98,7 @@ export class Dashboard implements OnInit {
       next: (unidades: Unidad[]) => {
         this.unidades = unidades;
         this.aplicarFiltros();
+        this.actualizarMarcadores()
       },
       error: (error) => {
         console.error('error cargando unidades desde firebase', error);
@@ -94,7 +113,7 @@ export class Dashboard implements OnInit {
 
       const coincideEstado =
         !this.filtroEstado || unidad.estado === this.filtroEstado;
-
+      this.actualizarMarcadores()
       return coincideCuerpo && coincideEstado;
     });
   }
@@ -103,6 +122,7 @@ export class Dashboard implements OnInit {
     this.filtroCuerpo = '';
     this.filtroEstado = '';
     this.aplicarFiltros();
+    this.inicializarMapa();
   }
 
   seleccionarUnidad(unidad: Unidad): void {
@@ -159,6 +179,7 @@ export class Dashboard implements OnInit {
     }
   }
 
+  
   /**
    * Envía un aviso de emergencia a una unidad específica
    * @param unidadId:       ID de la unidad (ej: BO-71)
@@ -168,12 +189,13 @@ export class Dashboard implements OnInit {
 
   prepararAvisos():void{ // esta función es necesaria para preparar los datos que se van a mandar
     if(this.incidenteSeleccionadoModal && this.unidadSeleccionadaModal){
-      const unidadId = this.unidadSeleccionadaModal.id
-      const contenido = this.incidenteSeleccionadoModal.description
-      const coordenadas = "40.4167, -3.7033"
+      const unidadId        = this.unidadSeleccionadaModal.id
+      const contenido       = this.incidenteSeleccionadoModal.description
+      const coordenadas     = "40.4167, -3.7033"
+      const incidenciaID    = this.incidenteSeleccionadoModal.id
 
       console.log(`UnidadID: ${unidadId} contenido: ${contenido}`)
-      this.mandarAvisos(unidadId, contenido, coordenadas)
+      this.mandarAvisos(unidadId, contenido, coordenadas, incidenciaID)
 
       // reset de la selección para que no se manden duplicados o se guarden unidades que no deberían
       this.unidadSeleccionadaModal = null
@@ -182,8 +204,8 @@ export class Dashboard implements OnInit {
   }
 
   //FUNCIÓN ENCARGADA DE MANDAR LOS AVISOS A MESSAGING
-  mandarAvisos(unidadId: string, contenido: string, coordenadas: string) {
-    this.mandarAvisosService.enviarAviso(unidadId, contenido, coordenadas).subscribe(
+  mandarAvisos(unidadId: string, contenido: string, coordenadas: string, incidenciaID: string) {
+    this.mandarAvisosService.enviarAviso(unidadId, contenido, coordenadas, incidenciaID).subscribe(
       (respuesta: any) => {
         console.log('Mensaje enviado con éxito:', respuesta);
       },
@@ -204,14 +226,122 @@ export class Dashboard implements OnInit {
           telefono: item.telefono ?? '',
           tipoSangre: item.tipoSangre,
           description: item.description ?? item.descripcion ?? '',
-          estatus: item.estatus ?? 'normal'
+          estatus: item.estatus ?? 'normal',
+          lat: item.lat,
+          lng: item.lng
         }));
         console.log('avisos recibidos', this.incidentesActivos.length);
+        this.actualizarMarcadores()
       },
       error: (error) => {
         console.error('error cargando incidentes desde firebase', error);
       }
     });
   }
+
+  // INICIALIZACIÓN DEL MAPA PARA VISUALIZAR LAS UNIDADES
+  inicializarMapa(){
+    setTimeout(() => {
+      this.apiCargada = true
+      this.renderizarMapa()
+    },);
+  }
+
+  // RENDERIZACIÓN DEL MAPA
+  renderizarMapa() {
+  // Cuando llames a esta función, el mapa se dibujará en el div #map
+  this.apiCargada = true; 
+  
+  const mapOptions = {
+    center: { lat: 40.4167, lng: -3.7033 },
+    zoom: 12,
+    mapId: 'DEMO_MAP_ID' // Opcional, para estilos avanzados
+  };
+
+  this.mapa = new google.maps.Map(document.getElementById('map'), mapOptions);
+  }
+
+  // PONE LOS PINES POR CADA UNA DE LAS UNIDADES
+  actualizarMarcadores() {
+  // 1. Verificación de seguridad
+  if (!this.mapa) {
+    console.warn("Mapa no listo. Reintentando en breve...");
+    return;
+  }
+
+  console.log("Intentando pintar unidades:", this.unidadesFiltradas.length);
+
+  // --- 2. PROCESAR UNIDADES ---
+  this.unidadesFiltradas.forEach(unidad => {
+    // Forzamos a Number por si Firebase los trae como string
+    // He dejado 'latiude' porque has dicho que en tu modelo está así
+    const lat = Number(unidad.latitude); 
+    const lng = Number(unidad.longitude);
+
+    if (!isNaN(lat) && !isNaN(lng) && lat !== 0) {
+      const pos = { lat, lng };
+
+      if (this.marcadoresUnidades[unidad.id]) {
+        this.marcadoresUnidades[unidad.id].setPosition(pos);
+      } else {
+        console.log(`Creando marcador para unidad: ${unidad.id} en`, pos);
+        this.marcadoresUnidades[unidad.id] = new google.maps.Marker({
+          position: pos,
+          map: this.mapa,
+          title: unidad.id,
+          icon: this.getIconoCuerpo(unidad.cuerpo)
+        });
+      }
+    } else {
+      console.error(`Coordenadas inválidas para ${unidad.id}:`, unidad.latitude, unidad.longitude);
+    }
+  });
+
+  // --- 3. LIMPIEZA DE FILTROS ---
+  Object.keys(this.marcadoresUnidades).forEach(id => {
+    if (!this.unidadesFiltradas.find(u => u.id === id)) {
+      this.marcadoresUnidades[id].setMap(null);
+      delete this.marcadoresUnidades[id];
+    }
+  });
+
+  // --- 4. PROCESAR INCIDENTES ---
+  this.incidentesActivos.forEach(incidente => {
+    const lat = Number(incidente.lat);
+    const lng = Number(incidente.lng);
+
+    if (!isNaN(lat) && !isNaN(lng)) {
+      const pos = { lat, lng };
+      if (!this.marcadoresIncidentes[incidente.id]) {
+        this.marcadoresIncidentes[incidente.id] = new google.maps.Marker({
+          position: pos,
+          map: this.mapa,
+          title: incidente.description
+        });
+      }
+    }
+  });
+}
+
+  // PONE UN ÍCONO DEPENDIENDO DEL CUERPO DE EMERGENCIAS
+  getIconoCuerpo(tipo: string) {
+  let url = 'assets/iconos/default.png';
+  
+  // Asignamos la ruta según el cuerpo
+  switch (tipo) {
+    case 'SAMUR-PC': url = '/img/iconosMaps/samur.png'; break;
+    case 'Bomberos': url = '/img/iconosMaps/bomberos.webp'; break;
+    case 'Policía Municipal': url = '/img/iconosMaps/pmm.png'; break;
+    case 'INCIDENTE': url = '/img/iconosMaps/PCEsp.svg'; break;
+  }
+
+  return {
+    url: url,
+    scaledSize: new google.maps.Size(40, 40), // Tamaño en píxeles (ajusta a tu gusto)
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(20, 20) // El centro del icono coincide con la coordenada
+  };
+}
+
 }
 

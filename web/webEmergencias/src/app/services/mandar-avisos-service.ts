@@ -15,11 +15,12 @@ export class MandarAvisosService {
   
   constructor(private http: HttpClient){}
 
-  enviarAviso(unidadId: string, contenido: string, coordenadas: string) {
+  enviarAviso(unidadId: string, contenido: string, coordenadas: string, incidenciaID: String) {
     const datosAviso = {
-    mensaje: contenido,       // el cuerpo del mensaje que se va a mandar
-    unidadID: unidadId,       // La identificación de la unidad
-    coordenadas: coordenadas, // coordenadas del aviso
+    mensaje: contenido,        // el cuerpo del mensaje que se va a mandar
+    unidadID: unidadId,        // La identificación de la unidad
+    coordenadas: coordenadas,  // coordenadas del aviso
+    incidenciaID: incidenciaID // identificador de la incidencia 
   };
 
     console.log('Enviando aviso a unidad:', datosAviso);

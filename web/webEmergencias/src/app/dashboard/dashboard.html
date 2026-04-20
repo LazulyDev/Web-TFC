@@ -163,37 +163,31 @@
 
     <!-- centro -->
     <div class="col-12 col-xl-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-0">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <h2 class="h6 fw-bold mb-1">Mapa operativo</h2>
-              <p class="text-secondary small mb-0">
-                Vista central para localización y asignación de recursos.
-              </p>
-            </div>
-            <span class="badge text-bg-primary">Preparado para integración</span>
-          </div>
+  <div class="card border-0 shadow-sm h-100">
+    <div class="card-header bg-white border-0">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h2 class="h6 fw-bold mb-1">Mapa operativo</h2>
+          <p class="text-secondary small mb-0">Localización en tiempo real de incidentes y unidades.</p>
         </div>
-
-        <div class="card-body">
-          <div class="map-placeholder">
-            <div class="text-center">
-              <i class="bi bi-geo-alt-fill map-icon mb-3"></i>
-              <h3 class="h5 fw-bold">Zona de mapa</h3>
-              <p class="text-secondary mb-0">
-                Meter Google Maps para visualizar incidencias y unidades.
-              </p>
-            </div>
-
-            <div class="mock-markers marker marker--danger">INC</div>
-            <div class="mock-markers marker marker--primary">POL</div>
-            <div class="mock-markers marker marker--warning">SAM</div>
-            <div class="mock-markers marker marker--fire">BOM</div>
-          </div>
-        </div>
+        <span class="badge" [ngClass]="apiCargada ? 'text-bg-success' : 'text-bg-warning'">
+          {{ apiCargada ? 'GPS Activo' : 'Cargando Mapas...' }}
+        </span>
       </div>
     </div>
+
+    <div class="card-body p-0 d-flex flex-column" style="height: 100%;">
+  @if (!apiCargada) {
+    <div class="d-flex flex-column align-items-center justify-content-center w-100 h-100 bg-light position-absolute" style="z-index: 20;">
+      <div class="spinner-border text-primary mb-3"></div>
+      <p>Sincronizando GPS...</p>
+    </div>
+  }
+
+  <div id="map" class="flex-grow-1" style="width: 100%; min-height: 600px; border-radius: 0 0 8px 8px;"></div>
+</div>
+  </div>
+</div>
 
     <!-- derecha -->
     <div class="col-12 col-xl-3">
