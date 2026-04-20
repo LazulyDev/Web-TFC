@@ -7,15 +7,26 @@ const corsMiddleware = cors({origin: true});
 
 export const enviarAlerta = functions.https.onRequest((req, res) => {
   return corsMiddleware(req, res, async () => {
-    const {mensaje, unidadID, coordenadas} = req.body;
+    const {mensaje, unidadID, avisoID, coordenadas} = req.body;
+
+    // Validación mínima: la app Android descarta el mensaje si le faltan
+    // unidadID o avisoID, así que rechazamos aquí en vez de mandar FCM al
+    // vacío.
+    if (!unidadID || !avisoID) {
+      res.status(400).send({
+        error: "Faltan campos obligatorios: unidadID y avisoID",
+      });
+      return;
+    }
 
     // mensaje a enviar
     const payload = {
       topic: unidadID,
       data: {
-        aviso: mensaje,
+        aviso: mensaje ?? "",
         unidadID: unidadID,
-        coordenadas: coordenadas,
+        avisoID: avisoID,
+        coordenadas: coordenadas ?? "",
       },
       android: {
         priority: "high" as const,

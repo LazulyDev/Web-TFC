@@ -150,8 +150,8 @@ export class MapOperativo implements AfterViewInit, OnChanges, OnDestroy {
 
       const tooltip = `
         <strong>${this.escape(inc.nombreCompleto || inc.id)}</strong><br>
-        ${this.escape(inc.descripcionEmergencia || '')}<br>
-        Tel: ${this.escape(inc.telefono || '—')}
+        ${this.escape(inc.description || '')}<br>
+        Tel: ${this.escape(inc.numeroTelefono || '—')}
         ${pending ? '<br><em>Cierre solicitado</em>' : ''}
       `;
 
