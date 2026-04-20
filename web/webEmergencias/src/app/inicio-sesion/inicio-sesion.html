@@ -34,4 +34,17 @@
             </button>
         </div>
     </div>
+
+    <!-- se mostrará en caso de que el login sea incorrecto. -->
+    @if (this.errorLogin == true ) {
+        <div class="position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index: 1050" id="error-login">
+            <div class="alert alert-danger border-0 border-bottom border-danger border-4 shadow-lg mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-octagon-fill me-2 fs-5"></i>
+                    <span><strong>Error:</strong> Usuario o contraseña incorrectos.</span>
+                    <button type="button" class="btn-close ms-3" (click)="errorLogin = false"></button>
+                </div>
+            </div>
+        </div>
+    }    
 </section>

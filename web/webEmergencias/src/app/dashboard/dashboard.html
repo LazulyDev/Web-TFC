@@ -14,7 +14,7 @@
       <button class="btn btn-outline-primary" (click)="recibirEmergencias()">
         <i class="bi bi-arrow-clockwise me-2"></i>Actualizar
       </button>
-      <button class="btn btn-danger">
+      <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalAviso">
         <i class="bi bi-broadcast-pin me-2"></i>Emitir aviso
       </button>
     </div>
@@ -40,8 +40,8 @@
       <div class="card dashboard-kpi border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center justify-content-between">
           <div>
-            <p class="kpi-label mb-1">Unidades en línea</p>
-            <h2 class="kpi-value mb-0">{{ contarPorEstado('Online') }}</h2>
+            <p class="kpi-label mb-1">Unidades activadas</p>
+            <h2 class="kpi-value mb-0">{{ contarPorEstado('activada') }}</h2>
           </div>
           <div class="kpi-icon bg-success-subtle text-success">
             <i class="bi bi-check2-circle"></i>
@@ -54,10 +54,8 @@
       <div class="card dashboard-kpi border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center justify-content-between">
           <div>
-            <p class="kpi-label mb-1">En caso / En escena</p>
-            <h2 class="kpi-value mb-0">
-              {{ contarPorEstado('InActiveCase') + contarPorEstado('OnScene') }}
-            </h2>
+            <p class="kpi-label mb-1">No disponibles</p>
+            <h2 class="kpi-value mb-0">{{ contarPorEstado('no disponible') }}</h2>
           </div>
           <div class="kpi-icon bg-warning-subtle text-warning">
             <i class="bi bi-slash-circle"></i>
@@ -93,7 +91,7 @@
 
           <div class="mb-3">
             <label class="form-label">Cuerpo</label>
-            <select class="form-select" [(ngModel)]="filtroCuerpo" (ngModelChange)="aplicarFiltros()">
+            <select class="form-select" [(ngModel)]="filtroCuerpo">
               <option value="">Todos</option>
               <option value="Policía Municipal">Policía Municipal</option>
               <option value="Bomberos">Bomberos</option>
@@ -101,15 +99,13 @@
             </select>
           </div>
 
-          <!-- estado filter — canonical vocabulary: Online / InActiveCase / OnScene / offline -->
           <div class="mb-3">
             <label class="form-label">Estado</label>
-            <select class="form-select" [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()">
+            <select class="form-select" [(ngModel)]="filtroEstado">
               <option value="">Todos</option>
-              <option value="Online">En línea</option>
-              <option value="InActiveCase">En caso</option>
-              <option value="OnScene">En la escena</option>
-              <option value="offline">Desconectada</option>
+              <option value="activada">Activada</option>
+              <option value="desactivada">Desactivada</option>
+              <option value="no disponible">No disponible</option>
             </select>
           </div>
 
@@ -130,9 +126,8 @@
 
         <div class="card-body pt-3">
           <div class="units-list">
-            @for (unidad of unidadesFiltradas; track unidad.id) {
-              <!-- Hide offline units from the operational list -->
-              @if (unidad.estado !== 'offline') {
+            @for (unidad of unidadesFiltradas; track unidad.id) { 
+              @if (unidad.estado !== "Desactivado") {
                 <button
                   type="button"
                   class="unit-card w-100 text-start mb-3"
@@ -151,7 +146,7 @@
                     </div>
 
                     <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
-                      {{ etiquetaEstado(unidad.estado) }}
+                      {{ unidad.estado }}
                     </span>
                   </div>
                 </button>
@@ -166,7 +161,7 @@
       </div>
     </div>
 
-    <!-- centro: mapa operativo -->
+    <!-- centro -->
     <div class="col-12 col-xl-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0">
@@ -174,18 +169,28 @@
             <div>
               <h2 class="h6 fw-bold mb-1">Mapa operativo</h2>
               <p class="text-secondary small mb-0">
-                Unidades e incidentes activos en tiempo real.
+                Vista central para localización y asignación de recursos.
               </p>
             </div>
-            <span class="badge text-bg-success">En vivo</span>
+            <span class="badge text-bg-primary">Preparado para integración</span>
           </div>
         </div>
 
-        <div class="card-body p-0">
-          <app-map-operativo
-            [unidades]="unidades"
-            [incidentes]="incidentesActivos">
-          </app-map-operativo>
+        <div class="card-body">
+          <div class="map-placeholder">
+            <div class="text-center">
+              <i class="bi bi-geo-alt-fill map-icon mb-3"></i>
+              <h3 class="h5 fw-bold">Zona de mapa</h3>
+              <p class="text-secondary mb-0">
+                Meter Google Maps para visualizar incidencias y unidades.
+              </p>
+            </div>
+
+            <div class="mock-markers marker marker--danger">INC</div>
+            <div class="mock-markers marker marker--primary">POL</div>
+            <div class="mock-markers marker marker--warning">SAM</div>
+            <div class="mock-markers marker marker--fire">BOM</div>
+          </div>
         </div>
       </div>
     </div>
@@ -204,13 +209,13 @@
 
         <div class="card-body pt-3">
           @for (incidente of incidentesActivos; track incidente.id) {
-            <div class="incident-card mb-3" [ngClass]="'incident-card--' + incidente.status">
+            <div class="incident-card mb-3" [ngClass]="'incident-card--' + incidente.estatus">
               <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                 <div>
                   <div class="fw-semibold">{{ incidente.nombreCompleto }}</div>
                 </div>
-                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.status)">
-                  {{ etiquetaStatus(incidente.status) }}
+                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">
+                  {{ incidente.estatus }}
                 </span>
               </div>
 
@@ -219,21 +224,8 @@
               </div>
 
               <div class="small text-secondary mb-3">
-                {{ incidente.descripcionEmergencia }}
+                {{ incidente.description }}
               </div>
-
-              <!-- Closure request banner — shown only when a Unit has pressed
-                   btnCaseFinished on the App. Coordinator clicks "Confirmar cierre"
-                   to actually finalise the case. -->
-              @if (tieneCierrePendiente(incidente)) {
-                <div class="alert alert-warning py-2 px-2 small mb-2">
-                  <i class="bi bi-exclamation-triangle me-1"></i>
-                  Unidad <strong>{{ incidente.finishRequestedBy }}</strong> solicita cerrar el caso.
-                </div>
-                <button class="btn btn-sm btn-success w-100 mb-2" (click)="confirmarCierre(incidente)">
-                  <i class="bi bi-check2-circle me-2"></i>Confirmar cierre
-                </button>
-              }
 
               <button class="btn btn-sm btn-outline-dark w-100" (click)="verIncidente(incidente)">
                 Ver incidente
@@ -270,26 +262,17 @@
               <div class="fw-semibold">{{ unidadSeleccionada.tipoUnidad }}</div>
             </div>
 
-            <div class="mb-2">
-              <div class="small text-secondary">Estado</div>
-              <div>
-                <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidadSeleccionada.estado)">
-                  {{ etiquetaEstado(unidadSeleccionada.estado) }}
-                </span>
-              </div>
-            </div>
-
             <div class="mb-3">
               <div class="small text-secondary">Cuenta de usuario</div>
               <div class="fw-semibold">{{ unidadSeleccionada.cuentaUsuario }}</div>
             </div>
 
             <div class="d-grid gap-2">
-              <button class="btn btn-primary" (click)="mandarAvisos('prueba', 'Este mensaje es una prueba', '40.418421183214576 -3.7093693716863')">
+              <button class="btn btn-primary btn-confirmar-aviso"  data-bs-toggle="modal" data-bs-target="#modalAviso"> <!--(click)="mandarAvisos('UPR-8027', 'esta notificación es una prueba', '123123')"-->
                 <i class="bi bi-send me-2"></i>Asignar a incidente
               </button>
-              <button class="btn btn-outline-secondary">
-                <i class="bi bi-geo me-2"></i>Localizar en mapa
+              <button class="btn btn-outline-secondary btn-cancelar-aviso">
+                <i class="bi bi-geo me-2 "></i>Localizar en mapa
               </button>
             </div>
           } @else {
@@ -300,6 +283,88 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- Ventana emergente para las unidades y para las incidencias. Encargado de asignar los avisos -->
+
+<!-- cabecera -->
+<div class="modal fade" id="modalAviso" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="height: 80vh;"> <div class="modal-header bg-danger text-white flex-shrink-0 cabecera-emergencia-modal">
+        <h5 class="modal-title fw-bold"><i class="bi bi-broadcast-pin me-2"></i>Centro de Emisión de Avisos</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- sección izquierda de gestión de las unidades -->
+      <div class="modal-body p-0 overflow-hidden">
+        <div class="d-flex h-100">
+          
+          <div class="col-6 d-flex flex-column border-end p-3">
+            <h6 class="text-uppercase fw-bold text-secondary mb-3">
+              <i class="bi bi-truck me-2"></i>1. Seleccionar Unidad
+            </h6>
+            <div class="flex-grow-1 overflow-y-auto pe-2">
+              @for (unidad of unidades; track unidad.id) {
+                <div class="unit-card mb-2 cp shadow-sm border" 
+                      [class.unit-card--selected]="unidadSeleccionadaModal?.id === unidad.id"
+                      (click)="unidadSeleccionadaModal = unidad">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="fw-bold">{{ unidad.id }}</span>
+                      <small class="d-block text-secondary small">{{ unidad.tipoUnidad }}</small>
+                    </div>
+                    <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
+                      {{ unidad.estado }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Sección derecha de los avisos -->
+          <div class="col-6 d-flex flex-column p-3 bg-light-subtle">
+            <h6 class="text-uppercase fw-bold text-secondary mb-3">
+              <i class="bi bi-exclamation-triangle me-2"></i>2. Seleccionar Incidente
+            </h6>
+            <div class="flex-grow-1 overflow-y-auto pe-2">
+              @for (incidente of incidentesActivos; track incidente.id) {
+                <div class="incident-card mb-2 cp shadow-sm border bg-white" 
+                      [class.border-primary]="incidenteSeleccionadoModal?.id === incidente.id"
+                      [style.border-width]="incidenteSeleccionadoModal?.id === incidente.id ? '2px' : '1px'"
+                      (click)="incidenteSeleccionadoModal = incidente">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <span class="fw-bold text-dark">{{ incidente.description }}</span>
+                    <span class="badge" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">{{ incidente.estatus }}</span>
+                  </div>
+                  <small class="text-muted d-block mt-1 lh-sm">{{ incidente.description }}</small>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer bg-white border-top flex-shrink-0">
+        <div class="me-auto d-flex align-items-center gap-3" *ngIf="incidenteSeleccionadoModal && unidadSeleccionadaModal">
+          <div class="small">
+            <span class="text-secondary">Asignación:</span> 
+            <span class="fw-bold text-primary ms-1">{{ unidadSeleccionadaModal.id }}</span>
+            <i class="bi bi-arrow-right mx-2"></i>
+            <span class="fw-bold text-danger">{{ incidenteSeleccionadoModal.id }}</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-cancelar-aviso" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger px-4 btn-confirmar-aviso" 
+                [disabled]="!incidenteSeleccionadoModal || !unidadSeleccionadaModal"
+                (click)="prepararAvisos()"
+                data-bs-dismiss="modal">
+          <i class="bi bi-send-fill me-2 btn-confirmar-aviso"></i>Confirmar Envío
+        </button>
+      </div>
     </div>
   </div>
 </div>
