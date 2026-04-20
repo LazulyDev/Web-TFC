@@ -289,20 +289,14 @@ a:focus {
   background: #fff;
 }
 
-.incident-card--normal {
-  border-left: 5px solid #0d6efd;
-}
-
-.incident-card--moderado {
-  border-left: 5px solid #ffc107;
-}
-
-.incident-card--urgente {
-  border-left: 5px solid #fd7e14;
-}
-
-.incident-card--prioritario {
+/* Case.status vocabulary: "Ongoing" | "Finished" */
+.incident-card--Ongoing {
   border-left: 5px solid #dc3545;
+}
+
+.incident-card--Finished {
+  border-left: 5px solid #6c757d;
+  opacity: 0.75;
 }
 
 .card {

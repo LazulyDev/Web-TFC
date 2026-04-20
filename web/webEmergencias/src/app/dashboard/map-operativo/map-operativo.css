@@ -1,0 +1,86 @@
+/* ViewEncapsulation.None on this component: these styles are global so
+   they can reach the Leaflet-injected .unit-pin / .incident-pin elements
+   which live outside Angular's view encapsulation. */
+
+.map-operativo-container {
+  min-height: 620px;
+  height: 100%;
+  width: 100%;
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+@media (max-width: 1199.98px) {
+  .map-operativo-container {
+    min-height: 420px;
+  }
+}
+
+/* Strip Leaflet's default div-icon frame so our own pill shows through */
+.unit-marker-wrap,
+.incident-marker-wrap {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* ── Unit pin (cuerpo colour + optional estado outline) ───────────── */
+.unit-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border: 2px solid #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+.unit-pin--policia  { background: #0d6efd; }
+.unit-pin--samur    { background: #ffc107; color: #212529; }
+.unit-pin--bomberos { background: #dc3545; }
+.unit-pin--generic  { background: #6c757d; }
+
+.unit-pin--on-scene { box-shadow: 0 3px 10px rgba(0,0,0,0.25), 0 0 0 3px #0dcaf0; }
+.unit-pin--in-case  { box-shadow: 0 3px 10px rgba(0,0,0,0.25), 0 0 0 3px #fd7e14; }
+.unit-pin--offline  { opacity: 0.45; filter: grayscale(0.6); }
+
+/* ── Incident pin (always red, pulses when closure is pending) ────── */
+.incident-pin {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #dc3545;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 900;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.5);
+  user-select: none;
+}
+
+.incident-pin--pending {
+  background: #f59e0b;
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.55);
+  animation: incident-pending-pulse 1.6s ease-out infinite;
+}
+
+@keyframes incident-pending-pulse {
+  0%   { box-shadow: 0 4px 12px rgba(245,158,11,0.55), 0 0 0 0 rgba(245,158,11,0.45); }
+  70%  { box-shadow: 0 4px 12px rgba(245,158,11,0.55), 0 0 0 14px rgba(245,158,11,0); }
+  100% { box-shadow: 0 4px 12px rgba(245,158,11,0.55), 0 0 0 0 rgba(245,158,11,0); }
+}
+
+/* Make sure Leaflet's tile container fills the card cleanly */
+.leaflet-container {
+  border-radius: 1.25rem;
+  font-family: inherit;
+}

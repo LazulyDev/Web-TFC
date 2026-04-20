@@ -40,8 +40,8 @@
       <div class="card dashboard-kpi border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center justify-content-between">
           <div>
-            <p class="kpi-label mb-1">Unidades activadas</p>
-            <h2 class="kpi-value mb-0">{{ contarPorEstado('activada') }}</h2>
+            <p class="kpi-label mb-1">Unidades en línea</p>
+            <h2 class="kpi-value mb-0">{{ contarPorEstado('Online') }}</h2>
           </div>
           <div class="kpi-icon bg-success-subtle text-success">
             <i class="bi bi-check2-circle"></i>
@@ -54,8 +54,10 @@
       <div class="card dashboard-kpi border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center justify-content-between">
           <div>
-            <p class="kpi-label mb-1">No disponibles</p>
-            <h2 class="kpi-value mb-0">{{ contarPorEstado('no disponible') }}</h2>
+            <p class="kpi-label mb-1">En caso / En escena</p>
+            <h2 class="kpi-value mb-0">
+              {{ contarPorEstado('InActiveCase') + contarPorEstado('OnScene') }}
+            </h2>
           </div>
           <div class="kpi-icon bg-warning-subtle text-warning">
             <i class="bi bi-slash-circle"></i>
@@ -91,7 +93,7 @@
 
           <div class="mb-3">
             <label class="form-label">Cuerpo</label>
-            <select class="form-select" [(ngModel)]="filtroCuerpo">
+            <select class="form-select" [(ngModel)]="filtroCuerpo" (ngModelChange)="aplicarFiltros()">
               <option value="">Todos</option>
               <option value="Policía Municipal">Policía Municipal</option>
               <option value="Bomberos">Bomberos</option>
@@ -99,13 +101,15 @@
             </select>
           </div>
 
+          <!-- estado filter — canonical vocabulary: Online / InActiveCase / OnScene / offline -->
           <div class="mb-3">
             <label class="form-label">Estado</label>
-            <select class="form-select" [(ngModel)]="filtroEstado">
+            <select class="form-select" [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()">
               <option value="">Todos</option>
-              <option value="activada">Activada</option>
-              <option value="desactivada">Desactivada</option>
-              <option value="no disponible">No disponible</option>
+              <option value="Online">En línea</option>
+              <option value="InActiveCase">En caso</option>
+              <option value="OnScene">En la escena</option>
+              <option value="offline">Desconectada</option>
             </select>
           </div>
 
@@ -126,9 +130,9 @@
 
         <div class="card-body pt-3">
           <div class="units-list">
-            @for (unidad of unidadesFiltradas; track unidad.id) { 
-              <!-- TODO: meter condicional para mostrar las unidades cuando estén Online -->
-              @if (unidad.estado !== "Desactivado") {
+            @for (unidad of unidadesFiltradas; track unidad.id) {
+              <!-- Hide offline units from the operational list -->
+              @if (unidad.estado !== 'offline') {
                 <button
                   type="button"
                   class="unit-card w-100 text-start mb-3"
@@ -147,7 +151,7 @@
                     </div>
 
                     <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
-                      {{ unidad.estado }}
+                      {{ etiquetaEstado(unidad.estado) }}
                     </span>
                   </div>
                 </button>
@@ -162,7 +166,7 @@
       </div>
     </div>
 
-    <!-- centro -->
+    <!-- centro: mapa operativo -->
     <div class="col-12 col-xl-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-white border-0">
@@ -170,28 +174,18 @@
             <div>
               <h2 class="h6 fw-bold mb-1">Mapa operativo</h2>
               <p class="text-secondary small mb-0">
-                Vista central para localización y asignación de recursos.
+                Unidades e incidentes activos en tiempo real.
               </p>
             </div>
-            <span class="badge text-bg-primary">Preparado para integración</span>
+            <span class="badge text-bg-success">En vivo</span>
           </div>
         </div>
 
-        <div class="card-body">
-          <div class="map-placeholder">
-            <div class="text-center">
-              <i class="bi bi-geo-alt-fill map-icon mb-3"></i>
-              <h3 class="h5 fw-bold">Zona de mapa</h3>
-              <p class="text-secondary mb-0">
-                Meter Google Maps para visualizar incidencias y unidades.
-              </p>
-            </div>
-
-            <div class="mock-markers marker marker--danger">INC</div>
-            <div class="mock-markers marker marker--primary">POL</div>
-            <div class="mock-markers marker marker--warning">SAM</div>
-            <div class="mock-markers marker marker--fire">BOM</div>
-          </div>
+        <div class="card-body p-0">
+          <app-map-operativo
+            [unidades]="unidades"
+            [incidentes]="incidentesActivos">
+          </app-map-operativo>
         </div>
       </div>
     </div>
@@ -210,13 +204,13 @@
 
         <div class="card-body pt-3">
           @for (incidente of incidentesActivos; track incidente.id) {
-            <div class="incident-card mb-3" [ngClass]="'incident-card--' + incidente.estatus">
+            <div class="incident-card mb-3" [ngClass]="'incident-card--' + incidente.status">
               <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                 <div>
                   <div class="fw-semibold">{{ incidente.nombreCompleto }}</div>
                 </div>
-                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">
-                  {{ incidente.estatus }}
+                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.status)">
+                  {{ etiquetaStatus(incidente.status) }}
                 </span>
               </div>
 
@@ -227,6 +221,19 @@
               <div class="small text-secondary mb-3">
                 {{ incidente.descripcionEmergencia }}
               </div>
+
+              <!-- Closure request banner — shown only when a Unit has pressed
+                   btnCaseFinished on the App. Coordinator clicks "Confirmar cierre"
+                   to actually finalise the case. -->
+              @if (tieneCierrePendiente(incidente)) {
+                <div class="alert alert-warning py-2 px-2 small mb-2">
+                  <i class="bi bi-exclamation-triangle me-1"></i>
+                  Unidad <strong>{{ incidente.finishRequestedBy }}</strong> solicita cerrar el caso.
+                </div>
+                <button class="btn btn-sm btn-success w-100 mb-2" (click)="confirmarCierre(incidente)">
+                  <i class="bi bi-check2-circle me-2"></i>Confirmar cierre
+                </button>
+              }
 
               <button class="btn btn-sm btn-outline-dark w-100" (click)="verIncidente(incidente)">
                 Ver incidente
@@ -263,13 +270,22 @@
               <div class="fw-semibold">{{ unidadSeleccionada.tipoUnidad }}</div>
             </div>
 
+            <div class="mb-2">
+              <div class="small text-secondary">Estado</div>
+              <div>
+                <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidadSeleccionada.estado)">
+                  {{ etiquetaEstado(unidadSeleccionada.estado) }}
+                </span>
+              </div>
+            </div>
+
             <div class="mb-3">
               <div class="small text-secondary">Cuenta de usuario</div>
               <div class="fw-semibold">{{ unidadSeleccionada.cuentaUsuario }}</div>
             </div>
 
             <div class="d-grid gap-2">
-              <button class="btn btn-primary" (click)="mandarAvisos('prueba', 'Este mensaje es una prueba', '40.418421183214576 -3.7093693716863')" > <!--(click)="mandarAvisos('UPR-8027', 'esta notificación es una prueba', '123123')"-->
+              <button class="btn btn-primary" (click)="mandarAvisos('prueba', 'Este mensaje es una prueba', '40.418421183214576 -3.7093693716863')">
                 <i class="bi bi-send me-2"></i>Asignar a incidente
               </button>
               <button class="btn btn-outline-secondary">
