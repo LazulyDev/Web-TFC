@@ -12,7 +12,7 @@ interface Incidente {
   nombreCompleto: string;
   telefono: string;
   tipoSangre?: string;
-  descripcionEmergencia: string;
+  description: string;
   estatus: 'normal' | 'moderado' | 'urgente' | 'prioritario';
 }
 
@@ -28,6 +28,9 @@ export class Dashboard implements OnInit {
   private mandarAvisosService = inject(MandarAvisosService)
   private recibirAvisosService = inject(RecibirAvisosService)
 
+  incidenteSeleccionadoModal: Incidente | null = null;
+  unidadSeleccionadaModal: Unidad | null = null;
+
   unidades: Unidad[] = [];
   unidadesFiltradas: Unidad[] = [];
   unidadSeleccionada: Unidad | null = null;
@@ -42,7 +45,7 @@ export class Dashboard implements OnInit {
       nombreCompleto: 'Fulanito Detal',
       telefono: '123 12 12 12',
       tipoSangre: '0+',
-      descripcionEmergencia: 'Caída en vía pública con posible traumatismo.',
+      description: 'Caída en vía pública con posible traumatismo.',
       estatus: 'normal'
     },
     {
@@ -50,7 +53,7 @@ export class Dashboard implements OnInit {
       identificador: 2,
       nombreCompleto: 'María López',
       telefono: '654 88 11 22',
-      descripcionEmergencia: 'Incendio en vivienda con humo en escalera.',
+      description: 'Incendio en vivienda con humo en escalera.',
       estatus: 'prioritario'
     },
     {
@@ -58,7 +61,7 @@ export class Dashboard implements OnInit {
       identificador: 3,
       nombreCompleto: 'Carlos Pérez',
       telefono: '622 45 67 90',
-      descripcionEmergencia: 'Accidente de tráfico con heridos conscientes.',
+      description: 'Accidente de tráfico con heridos conscientes.',
       estatus: 'urgente'
     }
   ];
@@ -162,6 +165,23 @@ export class Dashboard implements OnInit {
    * @param contenido:      Cuerpo/descripción del aviso
    * @param coordenadas:    Coordenadas como string (ej: "40.4168,-3.7038") SERÁN AÑADIDAS EN UN FUTURO
    */
+
+  prepararAvisos():void{ // esta función es necesaria para preparar los datos que se van a mandar
+    if(this.incidenteSeleccionadoModal && this.unidadSeleccionadaModal){
+      const unidadId = this.unidadSeleccionadaModal.id
+      const contenido = this.incidenteSeleccionadoModal.description
+      const coordenadas = "40.4167, -3.7033"
+
+      console.log(`UnidadID: ${unidadId} contenido: ${contenido}`)
+      this.mandarAvisos(unidadId, contenido, coordenadas)
+
+      // reset de la selección para que no se manden duplicados o se guarden unidades que no deberían
+      this.unidadSeleccionadaModal = null
+      this.incidenteSeleccionadoModal = null
+    }
+  }
+
+  //FUNCIÓN ENCARGADA DE MANDAR LOS AVISOS A MESSAGING
   mandarAvisos(unidadId: string, contenido: string, coordenadas: string) {
     this.mandarAvisosService.enviarAviso(unidadId, contenido, coordenadas).subscribe(
       (respuesta: any) => {
@@ -183,7 +203,7 @@ export class Dashboard implements OnInit {
           nombreCompleto: item.nombreCompleto ?? item.nombre ?? 'Sin nombre',
           telefono: item.telefono ?? '',
           tipoSangre: item.tipoSangre,
-          descripcionEmergencia: item.descripcionEmergencia ?? item.descripcion ?? '',
+          description: item.description ?? item.descripcion ?? '',
           estatus: item.estatus ?? 'normal'
         }));
         console.log('avisos recibidos', this.incidentesActivos.length);

@@ -14,7 +14,7 @@
       <button class="btn btn-outline-primary" (click)="recibirEmergencias()">
         <i class="bi bi-arrow-clockwise me-2"></i>Actualizar
       </button>
-      <button class="btn btn-danger">
+      <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalAviso">
         <i class="bi bi-broadcast-pin me-2"></i>Emitir aviso
       </button>
     </div>
@@ -127,7 +127,6 @@
         <div class="card-body pt-3">
           <div class="units-list">
             @for (unidad of unidadesFiltradas; track unidad.id) { 
-              <!-- TODO: meter condicional para mostrar las unidades cuando estén Online -->
               @if (unidad.estado !== "Desactivado") {
                 <button
                   type="button"
@@ -225,7 +224,7 @@
               </div>
 
               <div class="small text-secondary mb-3">
-                {{ incidente.descripcionEmergencia }}
+                {{ incidente.description }}
               </div>
 
               <button class="btn btn-sm btn-outline-dark w-100" (click)="verIncidente(incidente)">
@@ -269,11 +268,11 @@
             </div>
 
             <div class="d-grid gap-2">
-              <button class="btn btn-primary" (click)="mandarAvisos('prueba', 'Este mensaje es una prueba', '40.418421183214576 -3.7093693716863')" > <!--(click)="mandarAvisos('UPR-8027', 'esta notificación es una prueba', '123123')"-->
+              <button class="btn btn-primary btn-confirmar-aviso"  data-bs-toggle="modal" data-bs-target="#modalAviso"> <!--(click)="mandarAvisos('UPR-8027', 'esta notificación es una prueba', '123123')"-->
                 <i class="bi bi-send me-2"></i>Asignar a incidente
               </button>
-              <button class="btn btn-outline-secondary">
-                <i class="bi bi-geo me-2"></i>Localizar en mapa
+              <button class="btn btn-outline-secondary btn-cancelar-aviso">
+                <i class="bi bi-geo me-2 "></i>Localizar en mapa
               </button>
             </div>
           } @else {
@@ -284,6 +283,88 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- Ventana emergente para las unidades y para las incidencias. Encargado de asignar los avisos -->
+
+<!-- cabecera -->
+<div class="modal fade" id="modalAviso" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="height: 80vh;"> <div class="modal-header bg-danger text-white flex-shrink-0 cabecera-emergencia-modal">
+        <h5 class="modal-title fw-bold"><i class="bi bi-broadcast-pin me-2"></i>Centro de Emisión de Avisos</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- sección izquierda de gestión de las unidades -->
+      <div class="modal-body p-0 overflow-hidden">
+        <div class="d-flex h-100">
+          
+          <div class="col-6 d-flex flex-column border-end p-3">
+            <h6 class="text-uppercase fw-bold text-secondary mb-3">
+              <i class="bi bi-truck me-2"></i>1. Seleccionar Unidad
+            </h6>
+            <div class="flex-grow-1 overflow-y-auto pe-2">
+              @for (unidad of unidades; track unidad.id) {
+                <div class="unit-card mb-2 cp shadow-sm border" 
+                      [class.unit-card--selected]="unidadSeleccionadaModal?.id === unidad.id"
+                      (click)="unidadSeleccionadaModal = unidad">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="fw-bold">{{ unidad.id }}</span>
+                      <small class="d-block text-secondary small">{{ unidad.tipoUnidad }}</small>
+                    </div>
+                    <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
+                      {{ unidad.estado }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Sección derecha de los avisos -->
+          <div class="col-6 d-flex flex-column p-3 bg-light-subtle">
+            <h6 class="text-uppercase fw-bold text-secondary mb-3">
+              <i class="bi bi-exclamation-triangle me-2"></i>2. Seleccionar Incidente
+            </h6>
+            <div class="flex-grow-1 overflow-y-auto pe-2">
+              @for (incidente of incidentesActivos; track incidente.id) {
+                <div class="incident-card mb-2 cp shadow-sm border bg-white" 
+                      [class.border-primary]="incidenteSeleccionadoModal?.id === incidente.id"
+                      [style.border-width]="incidenteSeleccionadoModal?.id === incidente.id ? '2px' : '1px'"
+                      (click)="incidenteSeleccionadoModal = incidente">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <span class="fw-bold text-dark">{{ incidente.description }}</span>
+                    <span class="badge" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">{{ incidente.estatus }}</span>
+                  </div>
+                  <small class="text-muted d-block mt-1 lh-sm">{{ incidente.description }}</small>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer bg-white border-top flex-shrink-0">
+        <div class="me-auto d-flex align-items-center gap-3" *ngIf="incidenteSeleccionadoModal && unidadSeleccionadaModal">
+          <div class="small">
+            <span class="text-secondary">Asignación:</span> 
+            <span class="fw-bold text-primary ms-1">{{ unidadSeleccionadaModal.id }}</span>
+            <i class="bi bi-arrow-right mx-2"></i>
+            <span class="fw-bold text-danger">{{ incidenteSeleccionadoModal.id }}</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-cancelar-aviso" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger px-4 btn-confirmar-aviso" 
+                [disabled]="!incidenteSeleccionadoModal || !unidadSeleccionadaModal"
+                (click)="prepararAvisos()"
+                data-bs-dismiss="modal">
+          <i class="bi bi-send-fill me-2 btn-confirmar-aviso"></i>Confirmar Envío
+        </button>
+      </div>
     </div>
   </div>
 </div>
