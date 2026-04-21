@@ -10,14 +10,6 @@
       </p>
     </div>
 
-    <div class="d-flex flex-wrap gap-2">
-      <button class="btn btn-outline-primary" (click)="recibirEmergencias()">
-        <i class="bi bi-arrow-clockwise me-2"></i>Actualizar
-      </button>
-      <button class="btn btn-danger">
-        <i class="bi bi-broadcast-pin me-2"></i>Emitir aviso
-      </button>
-    </div>
   </div>
 
   <!-- resumen superior -->
@@ -40,8 +32,8 @@
       <div class="card dashboard-kpi border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center justify-content-between">
           <div>
-            <p class="kpi-label mb-1">Unidades activadas</p>
-            <h2 class="kpi-value mb-0">{{ contarPorEstado('activada') }}</h2>
+            <p class="kpi-label mb-1">Unidades disponibles</p>
+            <h2 class="kpi-value mb-0">{{ contarPorEstado('Disponible') }}</h2>
           </div>
           <div class="kpi-icon bg-success-subtle text-success">
             <i class="bi bi-check2-circle"></i>
@@ -54,11 +46,11 @@
       <div class="card dashboard-kpi border-0 shadow-sm h-100">
         <div class="card-body d-flex align-items-center justify-content-between">
           <div>
-            <p class="kpi-label mb-1">No disponibles</p>
-            <h2 class="kpi-value mb-0">{{ contarPorEstado('no disponible') }}</h2>
+            <p class="kpi-label mb-1">Unidades ocupadas</p>
+            <h2 class="kpi-value mb-0">{{ contarPorEstado('Busy') }}</h2>
           </div>
           <div class="kpi-icon bg-warning-subtle text-warning">
-            <i class="bi bi-slash-circle"></i>
+            <i class="bi bi-cone-striped"></i>
           </div>
         </div>
       </div>
@@ -91,7 +83,7 @@
 
           <div class="mb-3">
             <label class="form-label">Cuerpo</label>
-            <select class="form-select" [(ngModel)]="filtroCuerpo">
+            <select class="form-select" [(ngModel)]="filtroCuerpo" (ngModelChange)="aplicarFiltros()">
               <option value="">Todos</option>
               <option value="Policía Municipal">Policía Municipal</option>
               <option value="Bomberos">Bomberos</option>
@@ -101,11 +93,11 @@
 
           <div class="mb-3">
             <label class="form-label">Estado</label>
-            <select class="form-select" [(ngModel)]="filtroEstado">
+            <select class="form-select" [(ngModel)]="filtroEstado" (ngModelChange)="aplicarFiltros()">
               <option value="">Todos</option>
-              <option value="activada">Activada</option>
-              <option value="desactivada">Desactivada</option>
-              <option value="no disponible">No disponible</option>
+              <option value="Disponible">Disponible</option>
+              <option value="Busy">Busy</option>
+              <option value="Online">Online</option>
             </select>
           </div>
 
@@ -199,22 +191,44 @@
       <!-- incidentes -->
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white border-0 pb-0">
-          <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="h6 fw-bold mb-0">Incidentes activos</h2>
-            <span class="badge text-bg-danger">{{ incidentesActivos.length }}</span>
+            <span class="badge text-bg-danger">{{ incidentesFiltrados.length }}</span>
+          </div>
+
+          <div class="pb-3">
+            <label class="form-label small text-secondary">Ordenar por</label>
+            <select class="form-select" [(ngModel)]="filtroIncidentes" (ngModelChange)="aplicarOrdenIncidentes()">
+              <option value="urgencia">nivel de urgencia</option>
+              <option value="reciente">mas reciente</option>
+            </select>
           </div>
         </div>
 
         <div class="card-body pt-3">
-          @for (incidente of incidentesActivos; track incidente.id) {
-            <div class="incident-card mb-3" [ngClass]="'incident-card--' + incidente.estatus">
-              <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+          @for (incidente of incidentesFiltrados; track incidente.id) {
+            <div
+              class="incident-card mb-3"
+              [ngClass]="[
+                'incident-card--' + incidente.estatus,
+                incidente.asignado ? 'incident-card--asignado' : ''
+              ]"
+            >
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                 <div>
                   <div class="fw-semibold">{{ incidente.nombreCompleto }}</div>
+                  <div class="small text-secondary">{{ incidente.fecha || 'sin fecha' }}</div>
                 </div>
-                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">
-                  {{ incidente.estatus }}
-                </span>
+
+                <div class="d-flex flex-column align-items-end gap-2">
+                  <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">
+                    {{ incidente.estatus }}
+                  </span>
+
+                  @if (incidente.asignado) {
+                    <span class="badge text-bg-success">asignado</span>
+                  }
+                </div>
               </div>
 
               <div class="small mb-2">
@@ -226,7 +240,7 @@
               </div>
 
               <button class="btn btn-sm btn-outline-dark w-100" (click)="verIncidente(incidente)">
-                Ver incidente
+                ver incidente
               </button>
             </div>
           } @empty {
@@ -284,3 +298,128 @@
     </div>
   </div>
 </div>
+
+@if (modalAbierto && incidenteSeleccionado) {
+  <div class="custom-modal-backdrop" (click)="cerrarModalIncidente()"></div>
+
+  <div class="custom-modal-wrapper">
+    <div class="custom-modal-card">
+      <div class="custom-modal-header">
+        <div>
+          <h2 class="h5 fw-bold mb-1">detalle del incidente</h2>
+          <p class="text-secondary mb-0">consulta y asignacion de unidades</p>
+        </div>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cerrarModalIncidente()">
+          cerrar
+        </button>
+      </div>
+
+      <div class="custom-modal-body">
+        <div class="row g-4">
+          <div class="col-12 col-lg-5">
+            <div class="incident-detail-box">
+              <div class="mb-3">
+                <div class="small text-secondary">nombre</div>
+                <div class="fw-semibold">{{ incidenteSeleccionado.nombreCompleto }}</div>
+              </div>
+
+              <div class="mb-3">
+                <div class="small text-secondary">telefono</div>
+                <div class="fw-semibold">{{ incidenteSeleccionado.telefono || 'sin telefono' }}</div>
+              </div>
+
+              <div class="mb-3">
+                <div class="small text-secondary">fecha</div>
+                <div class="fw-semibold">{{ incidenteSeleccionado.fecha || 'sin fecha' }}</div>
+              </div>
+
+              <div class="mb-3">
+                <div class="small text-secondary">prioridad</div>
+                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidenteSeleccionado.estatus)">
+                  {{ incidenteSeleccionado.estatus }}
+                </span>
+              </div>
+
+              <div class="mb-3">
+                <div class="small text-secondary">tipo de sangre</div>
+                <div class="fw-semibold">{{ incidenteSeleccionado.tipoSangre || 'sin dato' }}</div>
+              </div>
+
+              <div class="mb-0">
+                <div class="small text-secondary">descripcion</div>
+                <div class="fw-semibold">{{ incidenteSeleccionado.descripcionEmergencia || 'sin descripcion' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-7">
+            <div class="incident-detail-box">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <h3 class="h6 fw-bold mb-1">unidades operativas</h3>
+                  <p class="small text-secondary mb-0">
+                    las unidades ocupadas se muestran bloqueadas
+                  </p>
+                </div>
+
+                <span class="badge text-bg-light">{{ unidadesOperativasModal.length }}</span>
+              </div>
+
+              <div class="modal-units-list">
+                @for (unidad of unidadesOperativasModal; track unidad.id) {
+                  <button
+                    type="button"
+                    class="modal-unit-card w-100 text-start mb-3"
+                    [class.modal-unit-card--selected]="unidadMarcada(unidad)"
+                    [class.modal-unit-card--blocked]="unidadEstaBloqueada(unidad)"
+                    (click)="toggleUnidadSeleccionada(unidad)"
+                  >
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                      <div>
+                        <div class="fw-semibold mb-1">{{ unidad.id }}</div>
+                        <div class="small text-secondary mb-1">{{ unidad.cuerpo }}</div>
+                        <div class="small text-secondary">Tipo: {{ unidad.tipoUnidad }}</div>
+                      </div>
+
+                      <div class="d-flex flex-column align-items-end gap-2">
+                        <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(unidad.estado)">
+                          {{ obtenerTextoEstadoUnidadModal(unidad) }}
+                        </span>
+
+                        @if (unidadEstaBloqueada(unidad)) {
+                          <span class="badge text-bg-secondary">bloqueada</span>
+                        } @else if (unidadMarcada(unidad)) {
+                          <span class="badge text-bg-success">seleccionada</span>
+                        }
+                      </div>
+                    </div>
+                  </button>
+                } @empty {
+                  <div class="text-center text-secondary py-4">
+                    no hay unidades operativas disponibles
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="btn btn-outline-danger" (click)="finalizarIncidenciaLocal()">
+          finalizar incidencia
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="unidadesSeleccionadasIds.length === 0"
+          (click)="guardarAsignacionLocal()"
+        >
+          solicitud de asignacion
+        </button>
+      </div>
+    </div>
+  </div>
+}

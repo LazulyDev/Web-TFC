@@ -13,7 +13,10 @@ interface Incidente {
   telefono: string;
   tipoSangre?: string;
   descripcionEmergencia: string;
-  estatus: 'normal' | 'moderado' | 'urgente' | 'prioritario';
+  estatus: string;
+  fecha: string;
+  workers: string[];
+  asignado: boolean;
 }
 
 @Component({
@@ -34,34 +37,13 @@ export class Dashboard implements OnInit {
 
   filtroCuerpo = '';
   filtroEstado = '';
+  filtroIncidentes = 'urgencia';
+  incidentesFiltrados: Incidente[] = [];
+  modalAbierto = false;
+  incidenteSeleccionado: Incidente | null = null;
+  unidadesSeleccionadasIds: string[] = [];
 
-  incidentesActivos: Incidente[] = [
-    {
-      id: 'INC-001',
-      identificador: 1,
-      nombreCompleto: 'Fulanito Detal',
-      telefono: '123 12 12 12',
-      tipoSangre: '0+',
-      descripcionEmergencia: 'Caída en vía pública con posible traumatismo.',
-      estatus: 'normal'
-    },
-    {
-      id: 'INC-002',
-      identificador: 2,
-      nombreCompleto: 'María López',
-      telefono: '654 88 11 22',
-      descripcionEmergencia: 'Incendio en vivienda con humo en escalera.',
-      estatus: 'prioritario'
-    },
-    {
-      id: 'INC-003',
-      identificador: 3,
-      nombreCompleto: 'Carlos Pérez',
-      telefono: '622 45 67 90',
-      descripcionEmergencia: 'Accidente de tráfico con heridos conscientes.',
-      estatus: 'urgente'
-    }
-  ];
+  incidentesActivos: Incidente[] = [];
 
   get totalUnidades(): number {
     return this.unidades.length;
@@ -86,6 +68,17 @@ export class Dashboard implements OnInit {
 
   aplicarFiltros(): void {
     this.unidadesFiltradas = this.unidades.filter((unidad) => {
+      // oculta unidades no operativas
+      const estadoNormalizado = (unidad.estado || '').trim().toLowerCase();
+      const esVisible =
+        estadoNormalizado === 'disponible' ||
+        estadoNormalizado === 'busy' ||
+        estadoNormalizado === 'online';
+
+      if (!esVisible) {
+        return false;
+      }
+
       const coincideCuerpo =
         !this.filtroCuerpo || unidad.cuerpo === this.filtroCuerpo;
 
@@ -94,6 +87,14 @@ export class Dashboard implements OnInit {
 
       return coincideCuerpo && coincideEstado;
     });
+
+    // si la unidad seleccionada deja de estar visible, la deselecciona
+    if (
+      this.unidadSeleccionada &&
+      !this.unidadesFiltradas.some((u) => u.id === this.unidadSeleccionada?.id)
+    ) {
+      this.unidadSeleccionada = null;
+    }
   }
 
   limpiarFiltros(): void {
@@ -102,18 +103,191 @@ export class Dashboard implements OnInit {
     this.aplicarFiltros();
   }
 
+    aplicarOrdenIncidentes(): void {
+    const incidentesVisibles = this.incidentesActivos.filter((incidente) => {
+      const estadoNormalizado = (incidente.estatus || '').trim().toLowerCase();
+
+      // oculta incidentes terminados o resueltos
+      return estadoNormalizado !== 'terminado' && estadoNormalizado !== 'finalizado' && estadoNormalizado !== 'resuelto';
+    });
+
+    this.incidentesFiltrados = [...incidentesVisibles].sort((a, b) => {
+      if (this.filtroIncidentes === 'reciente') {
+        return this.obtenerTimestamp(b.fecha) - this.obtenerTimestamp(a.fecha);
+      }
+
+      const diferenciaUrgencia = this.obtenerPesoUrgencia(b.estatus) - this.obtenerPesoUrgencia(a.estatus);
+
+      if (diferenciaUrgencia !== 0) {
+        return diferenciaUrgencia;
+      }
+
+      return this.obtenerTimestamp(b.fecha) - this.obtenerTimestamp(a.fecha);
+    });
+  }
+
+  obtenerPesoUrgencia(estatus: string): number {
+    switch ((estatus || '').trim().toLowerCase()) {
+      case 'prioritario':
+        return 4;
+      case 'urgente':
+        return 3;
+      case 'moderado':
+        return 2;
+      case 'normal':
+        return 1;
+      default:
+        return 0;
+    }
+  }
+
+obtenerTimestamp(fecha: string): number {
+  if (!fecha) return 0;
+
+  try {
+    const [parteFecha, parteHora] = fecha.split('/');
+
+    if (!parteFecha || !parteHora) return 0;
+
+    const [dia, mes, anio] = parteFecha.split('-').map(n => parseInt(n, 10));
+    const [hora, minuto] = parteHora.split('.').map(n => parseInt(n, 10));
+
+    if ([dia, mes, anio].some(isNaN)) return 0;
+
+    return new Date(
+      anio,
+      (mes || 1) - 1,
+      dia || 1,
+      hora || 0,
+      minuto || 0
+    ).getTime();
+
+  } catch {
+    return 0;
+  }
+}
+
   seleccionarUnidad(unidad: Unidad): void {
     this.unidadSeleccionada = unidad;
   }
 
+    abrirModalIncidente(incidente: Incidente): void {
+    this.incidenteSeleccionado = incidente;
+    this.unidadesSeleccionadasIds = [...(incidente.workers || [])];
+    this.modalAbierto = true;
+  }
+
+  cerrarModalIncidente(): void {
+    this.modalAbierto = false;
+    this.incidenteSeleccionado = null;
+    this.unidadesSeleccionadasIds = [];
+  }
+
+  unidadEsSeleccionable(unidad: Unidad): boolean {
+    const estado = (unidad.estado || '').trim().toLowerCase();
+    return estado === 'disponible' || estado === 'online';
+  }
+
+  unidadEstaBloqueada(unidad: Unidad): boolean {
+    const estado = (unidad.estado || '').trim().toLowerCase();
+    return estado === 'busy';
+  }
+
+  toggleUnidadSeleccionada(unidad: Unidad): void {
+    if (!this.unidadEsSeleccionable(unidad)) {
+      return;
+    }
+
+    const claveUnidad = unidad.UID || unidad.id;
+    const yaSeleccionada = this.unidadesSeleccionadasIds.includes(claveUnidad);
+
+    if (yaSeleccionada) {
+      this.unidadesSeleccionadasIds = this.unidadesSeleccionadasIds.filter(
+        (id) => id !== claveUnidad
+      );
+    } else {
+      this.unidadesSeleccionadasIds = [...this.unidadesSeleccionadasIds, claveUnidad];
+    }
+  }
+
+  unidadMarcada(unidad: Unidad): boolean {
+    const claveUnidad = unidad.UID || unidad.id;
+    return this.unidadesSeleccionadasIds.includes(claveUnidad);
+  }
+
+  get unidadesOperativasModal(): Unidad[] {
+    return this.unidades.filter((unidad) => {
+      const estado = (unidad.estado || '').trim().toLowerCase();
+      return estado === 'disponible' || estado === 'online' || estado === 'busy';
+    });
+  }
+
+  guardarAsignacionLocal(): void {
+    if (!this.incidenteSeleccionado) {
+      return;
+    }
+
+    this.incidentesActivos = this.incidentesActivos.map((incidente) => {
+      if (incidente.id !== this.incidenteSeleccionado?.id) {
+        return incidente;
+      }
+
+      return {
+        ...incidente,
+        workers: [...this.unidadesSeleccionadasIds],
+        asignado: this.unidadesSeleccionadasIds.length > 0
+      };
+    });
+
+    this.aplicarOrdenIncidentes();
+    this.cerrarModalIncidente();
+  }
+
+  finalizarIncidenciaLocal(): void {
+    if (!this.incidenteSeleccionado) {
+      return;
+    }
+
+    this.incidentesActivos = this.incidentesActivos.map((incidente) => {
+      if (incidente.id !== this.incidenteSeleccionado?.id) {
+        return incidente;
+      }
+
+      return {
+        ...incidente,
+        estatus: 'terminado'
+      };
+    });
+
+    this.aplicarOrdenIncidentes();
+    this.cerrarModalIncidente();
+  }
+
+  obtenerTextoEstadoUnidadModal(unidad: Unidad): string {
+    const estado = (unidad.estado || '').trim().toLowerCase();
+
+    switch (estado) {
+      case 'disponible':
+        return 'disponible';
+      case 'online':
+        return 'online';
+      case 'busy':
+        return 'ocupada';
+      default:
+        return unidad.estado || 'sin estado';
+    }
+  }
+
   verIncidente(incidente: Incidente): void {
-    console.log('incidente seleccionado', incidente);
+    this.abrirModalIncidente(incidente);
   }
 
   contarPorEstado(estado: string): number {
-    return this.unidades.filter((unidad) => unidad.estado === estado).length;
+    return this.unidades.filter((unidad) => {
+      const estadoUnidad = (unidad.estado || '').trim().toLowerCase();
+      return estadoUnidad === estado.trim().toLowerCase();
+    }).length;
   }
-
   obtenerClaseCuerpo(cuerpo: string): string {
     switch (cuerpo) {
       case 'Policía Municipal':
@@ -128,21 +302,21 @@ export class Dashboard implements OnInit {
   }
 
   obtenerBadgeEstado(estado: string): string {
-    switch (estado) {
-      case 'activada':
+    switch ((estado || '').trim().toLowerCase()) {
+      case 'disponible':
         return 'text-bg-success';
-      case 'desactivada':
-        return 'text-bg-secondary';
-      case 'no disponible':
+      case 'busy':
         return 'text-bg-warning';
+        case 'online':
+          return 'text-bg-primary';
       default:
-        return 'text-bg-light';
+         return 'text-bg-secondary';
     }
   }
 
 
   obtenerBadgeIncidente(estatus: string): string {
-    switch (estatus) {
+    switch ((estatus || '').trim().toLowerCase()) {
       case 'normal':
         return 'text-bg-primary';
       case 'moderado':
@@ -177,15 +351,25 @@ export class Dashboard implements OnInit {
   recibirEmergencias(): void {
     this.recibirAvisosService.verAvisos().subscribe({
       next: (datos: any[]) => {
-        this.incidentesActivos = datos.map((item) => ({
-          id: item.id ?? item.identificador?.toString() ?? 'sin-id',
-          identificador: item.identificador ?? 0,
-          nombreCompleto: item.nombreCompleto ?? item.nombre ?? 'Sin nombre',
-          telefono: item.telefono ?? '',
-          tipoSangre: item.tipoSangre,
-          descripcionEmergencia: item.descripcionEmergencia ?? item.descripcion ?? '',
-          estatus: item.estatus ?? 'normal'
-        }));
+        this.incidentesActivos = datos.map((item, index) => {
+          const workers = Array.isArray(item.workers) ? item.workers : [];
+          const estatusNormalizado = (item.status || item.estatus || 'normal').trim().toLowerCase();
+
+          return {
+            id: item.id ?? item.identificador?.toString() ?? `sin-id-${index}`,
+            identificador: item.identificador ?? index + 1,
+            nombreCompleto: item.nombreCompleto ?? item.nombre ?? 'sin nombre',
+            telefono: item.numeroTelefono ?? item.telefono ?? '',
+            tipoSangre: item.codigoSanguineo ?? item.tipoSangre ?? '',
+            descripcionEmergencia: item.description ?? item.descripcionEmergencia ?? item.descripcion ?? '',
+            estatus: estatusNormalizado || 'normal',
+            fecha: item.date ?? '',
+            workers,
+            asignado: workers.length > 0
+          };
+        });
+
+        this.aplicarOrdenIncidentes();
         console.log('avisos recibidos', this.incidentesActivos.length);
       },
       error: (error) => {
