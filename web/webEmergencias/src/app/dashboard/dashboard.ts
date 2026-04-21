@@ -16,8 +16,8 @@ interface Incidente {
   tipoSangre?: string;
   description: string;
   estatus: 'normal' | 'moderado' | 'urgente' | 'prioritario';
-  lat?: number;
-  lng?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 @Component({
@@ -123,6 +123,7 @@ export class Dashboard implements OnInit {
     this.filtroEstado = '';
     this.aplicarFiltros();
     this.inicializarMapa();
+    this.actualizarMarcadores()
   }
 
   seleccionarUnidad(unidad: Unidad): void {
@@ -191,7 +192,7 @@ export class Dashboard implements OnInit {
     if(this.incidenteSeleccionadoModal && this.unidadSeleccionadaModal){
       const unidadId        = this.unidadSeleccionadaModal.id
       const contenido       = this.incidenteSeleccionadoModal.description
-      const coordenadas     = "40.4167, -3.7033"
+      const coordenadas     = `${this.incidenteSeleccionadoModal.latitude}, ${this.incidenteSeleccionadoModal.longitude}`
       const incidenciaID    = this.incidenteSeleccionadoModal.id
 
       console.log(`UnidadID: ${unidadId} contenido: ${contenido}`)
@@ -227,8 +228,8 @@ export class Dashboard implements OnInit {
           tipoSangre: item.tipoSangre,
           description: item.description ?? item.descripcion ?? '',
           estatus: item.estatus ?? 'normal',
-          lat: item.lat,
-          lng: item.lng
+          latitude: item.lat ?? item.latitude ?? item.latitud,
+          longitude: item.lng ?? item.longitude ?? item.longitud
         }));
         console.log('avisos recibidos', this.incidentesActivos.length);
         this.actualizarMarcadores()
@@ -283,6 +284,7 @@ export class Dashboard implements OnInit {
 
       if (this.marcadoresUnidades[unidad.id]) {
         this.marcadoresUnidades[unidad.id].setPosition(pos);
+        console.log(`Unidad: ${unidad.id} colocada correctamente en ${unidad.latitude}, ${unidad.longitude}`)
       } else {
         console.log(`Creando marcador para unidad: ${unidad.id} en`, pos);
         this.marcadoresUnidades[unidad.id] = new google.maps.Marker({
@@ -307,8 +309,10 @@ export class Dashboard implements OnInit {
 
   // --- 4. PROCESAR INCIDENTES ---
   this.incidentesActivos.forEach(incidente => {
-    const lat = Number(incidente.lat);
-    const lng = Number(incidente.lng);
+    const lat = Number(incidente.latitude);
+    const lng = Number(incidente.longitude);
+
+    console.log(`incidente: ${incidente.id} coordenadas: ${incidente.latitude}, ${incidente.longitude}`)
 
     if (!isNaN(lat) && !isNaN(lng)) {
       const pos = { lat, lng };
@@ -316,7 +320,8 @@ export class Dashboard implements OnInit {
         this.marcadoresIncidentes[incidente.id] = new google.maps.Marker({
           position: pos,
           map: this.mapa,
-          title: incidente.description
+          title: incidente.description,
+          icon: this.getIconoCuerpo('incidente')
         });
       }
     }
@@ -329,17 +334,17 @@ export class Dashboard implements OnInit {
   
   // Asignamos la ruta según el cuerpo
   switch (tipo) {
-    case 'SAMUR-PC': url = '/img/iconosMaps/samur.png'; break;
-    case 'Bomberos': url = '/img/iconosMaps/bomberos.webp'; break;
-    case 'Policía Municipal': url = '/img/iconosMaps/pmm.png'; break;
-    case 'INCIDENTE': url = '/img/iconosMaps/PCEsp.svg'; break;
+    case 'SAMUR-PC':            url = '/img/iconosMaps/samur.png'; break;
+    case 'Bomberos':            url = '/img/iconosMaps/bomberos.webp'; break;
+    case 'Policía Municipal':   url = '/img/iconosMaps/pmm.png'; break;
+    case 'incidente':           url = '/img/iconosMaps/sos.png'; break;
   }
 
   return {
     url: url,
-    scaledSize: new google.maps.Size(40, 40), // Tamaño en píxeles (ajusta a tu gusto)
+    scaledSize: new google.maps.Size(40, 40),     // Tamaño en píxeles (ajusta a tu gusto)
     origin: new google.maps.Point(0, 0),
-    anchor: new google.maps.Point(20, 20) // El centro del icono coincide con la coordenada
+    anchor: new google.maps.Point(20, 20)         // El centro del icono coincide con la coordenada
   };
 }
 
