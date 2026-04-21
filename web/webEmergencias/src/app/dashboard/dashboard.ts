@@ -1,10 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { GoogleMap, MapMarker, MapInfoWindow } from '@angular/google-maps';
 import { Unidad } from '../models/Unidad';
 import { NuevaUnidadService } from '../services/nueva-unidad-service';
 import { MandarAvisosService } from '../services/mandar-avisos-service';
 import { RecibirAvisosService } from '../services/recibir.avisos.service';
+
 
 interface Incidente {
   id: string;
@@ -17,12 +19,14 @@ interface Incidente {
   fecha: string;
   workers: string[];
   asignado: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GoogleMap, MapMarker, MapInfoWindow],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -39,6 +43,35 @@ export class Dashboard implements OnInit {
   filtroEstado = '';
   filtroIncidentes = 'urgencia';
   incidentesFiltrados: Incidente[] = [];
+
+  // mapa
+  center: google.maps.LatLngLiteral = { lat: 40.4168, lng: -3.7038 };
+  zoom = 12;
+
+  mapOptions: google.maps.MapOptions = {
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: true,
+    zoomControl: true,
+    clickableIcons: false
+  };
+
+  marcadoresIncidentes: google.maps.LatLngLiteral[] = [];
+  marcadoresUnidades: {
+    position: google.maps.LatLngLiteral;
+    title: string;
+    options: google.maps.MarkerOptions;
+  }[] = [];
+
+    @ViewChild(MapInfoWindow) infoWindow!: MapInfoWindow;
+
+    marcadorSeleccionado: {
+    position: google.maps.LatLngLiteral;
+    tipo: 'unidad' | 'incidente';
+    titulo: string;
+    subtitulo: string;
+  } | null = null;
+
   modalAbierto = false;
   incidenteSeleccionado: Incidente | null = null;
   unidadesSeleccionadasIds: string[] = [];
@@ -59,6 +92,7 @@ export class Dashboard implements OnInit {
       next: (unidades: Unidad[]) => {
         this.unidades = unidades;
         this.aplicarFiltros();
+        this.actualizarMarcadoresMapa();
       },
       error: (error) => {
         console.error('error cargando unidades desde firebase', error);
@@ -95,6 +129,7 @@ export class Dashboard implements OnInit {
     ) {
       this.unidadSeleccionada = null;
     }
+    this.actualizarMarcadoresMapa();
   }
 
   limpiarFiltros(): void {
@@ -111,6 +146,8 @@ export class Dashboard implements OnInit {
       return estadoNormalizado !== 'terminado' && estadoNormalizado !== 'finalizado' && estadoNormalizado !== 'resuelto';
     });
 
+    
+
     this.incidentesFiltrados = [...incidentesVisibles].sort((a, b) => {
       if (this.filtroIncidentes === 'reciente') {
         return this.obtenerTimestamp(b.fecha) - this.obtenerTimestamp(a.fecha);
@@ -124,6 +161,158 @@ export class Dashboard implements OnInit {
 
       return this.obtenerTimestamp(b.fecha) - this.obtenerTimestamp(a.fecha);
     });
+  }
+  actualizarMarcadoresMapa(): void {
+    this.marcadoresIncidentes = this.incidentesFiltrados
+      .filter((incidente: any) =>
+        typeof incidente.latitude === 'number' &&
+        typeof incidente.longitude === 'number'
+      )
+      .map((incidente: any) => ({
+        lat: incidente.latitude,
+        lng: incidente.longitude
+      }));
+
+    this.marcadoresUnidades = this.unidadesFiltradas
+      .filter((unidad) =>
+        typeof unidad.latitude === 'number' &&
+        typeof unidad.longitude === 'number'
+      )
+      .map((unidad) => ({
+        position: {
+          lat: unidad.latitude as number,
+          lng: unidad.longitude as number
+        },
+        title: `${unidad.id} - ${unidad.cuerpo}`,
+        options: {
+          title: `${unidad.id} - ${unidad.cuerpo}`,
+          icon: {
+            url: this.obtenerIconoUnidad(unidad.cuerpo)
+          }
+        }
+      }));
+
+    this.centrarMapaSiHayDatos();
+  }
+
+  centrarMapaSiHayDatos(): void {
+    const primerIncidente = this.marcadoresIncidentes[0];
+    const primeraUnidad = this.marcadoresUnidades[0]?.position;
+
+    if (primerIncidente) {
+      this.center = primerIncidente;
+      return;
+    }
+
+    if (primeraUnidad) {
+      this.center = primeraUnidad;
+    }
+  }
+
+  centrarEnUnidad(unidad: Unidad): void {
+    if (typeof unidad.latitude !== 'number' || typeof unidad.longitude !== 'number') {
+      return;
+    }
+
+    this.center = {
+      lat: unidad.latitude,
+      lng: unidad.longitude
+    };
+
+    this.zoom = 15;
+
+    this.marcadorSeleccionado = {
+      position: {
+        lat: unidad.latitude,
+        lng: unidad.longitude
+      },
+      tipo: 'unidad',
+      titulo: unidad.id,
+      subtitulo: `${unidad.cuerpo} - ${unidad.estado}`
+    };
+
+    this.abrirInfoDesdeLista();
+  }
+
+  centrarEnIncidente(incidente: Incidente): void {
+    if (typeof incidente.latitude !== 'number' || typeof incidente.longitude !== 'number') {
+      return;
+    }
+
+    this.center = {
+      lat: incidente.latitude,
+      lng: incidente.longitude
+    };
+
+    this.zoom = 16;
+
+    this.marcadorSeleccionado = {
+      position: {
+        lat: incidente.latitude,
+        lng: incidente.longitude
+      },
+      tipo: 'incidente',
+      titulo: incidente.nombreCompleto,
+      subtitulo: incidente.descripcionEmergencia || 'sin descripcion'
+    };
+
+    this.abrirInfoDesdeLista();
+  }
+
+  cerrarInfoWindow(): void {
+    this.marcadorSeleccionado = null;
+  }
+
+    abrirInfoDesdeLista(): void {
+    setTimeout(() => {
+      if (this.infoWindow && this.marcadorSeleccionado) {
+        this.infoWindow.open();
+      }
+    });
+  }
+
+  obtenerIconoUnidad(cuerpo: string): string {
+    const cuerpoNormalizado = (cuerpo || '').trim().toLowerCase();
+
+    switch (cuerpoNormalizado) {
+      case 'policía municipal':
+      case 'policia municipal':
+      case 'police':
+        return 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+
+      case 'samur-pc':
+      case 'samur':
+        return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
+
+      case 'bomberos':
+        return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
+
+      default:
+        return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
+    }
+  }
+
+  obtenerIconoIncidente(estatus: string): google.maps.Icon {
+    let color = 'red-dot';
+
+    switch ((estatus || '').trim().toLowerCase()) {
+      case 'normal':
+        color = 'blue-dot';
+        break;
+      case 'moderado':
+        color = 'yellow-dot';
+        break;
+      case 'urgente':
+        color = 'orange-dot';
+        break;
+      case 'prioritario':
+        color = 'red-dot';
+        break;
+    }
+
+    return {
+      url: `http://maps.google.com/mapfiles/ms/icons/${color}.png`
+    };
   }
 
   obtenerPesoUrgencia(estatus: string): number {
@@ -169,6 +358,43 @@ obtenerTimestamp(fecha: string): number {
 
   seleccionarUnidad(unidad: Unidad): void {
     this.unidadSeleccionada = unidad;
+    this.centrarEnUnidad(unidad);
+  }
+
+  abrirInfoUnidad(marker: MapMarker, unidad: Unidad): void {
+    if (typeof unidad.latitude !== 'number' || typeof unidad.longitude !== 'number') {
+      return;
+    }
+
+    this.marcadorSeleccionado = {
+      position: {
+        lat: unidad.latitude,
+        lng: unidad.longitude
+      },
+      tipo: 'unidad',
+      titulo: unidad.id,
+      subtitulo: `${unidad.cuerpo} - ${unidad.estado}`
+    };
+
+    this.infoWindow.open(marker);
+  }
+
+  abrirInfoIncidente(marker: MapMarker, incidente: Incidente): void {
+    if (typeof incidente.latitude !== 'number' || typeof incidente.longitude !== 'number') {
+      return;
+    }
+
+    this.marcadorSeleccionado = {
+      position: {
+        lat: incidente.latitude,
+        lng: incidente.longitude
+      },
+      tipo: 'incidente',
+      titulo: incidente.nombreCompleto,
+      subtitulo: incidente.descripcionEmergencia || 'sin descripcion'
+    };
+
+    this.infoWindow.open(marker);
   }
 
     abrirModalIncidente(incidente: Incidente): void {
@@ -279,6 +505,7 @@ obtenerTimestamp(fecha: string): number {
   }
 
   verIncidente(incidente: Incidente): void {
+    this.centrarEnIncidente(incidente);
     this.abrirModalIncidente(incidente);
   }
 
@@ -365,11 +592,14 @@ obtenerTimestamp(fecha: string): number {
             estatus: estatusNormalizado || 'normal',
             fecha: item.date ?? '',
             workers,
-            asignado: workers.length > 0
+            asignado: workers.length > 0,
+            latitude: item.latitude,
+            longitude: item.longitude
           };
         });
 
         this.aplicarOrdenIncidentes();
+        this.actualizarMarcadoresMapa();
         console.log('avisos recibidos', this.incidentesActivos.length);
       },
       error: (error) => {

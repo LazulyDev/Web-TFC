@@ -159,28 +159,65 @@
             <div>
               <h2 class="h6 fw-bold mb-1">Mapa operativo</h2>
               <p class="text-secondary small mb-0">
-                Vista central para localización y asignación de recursos.
+                Visualizacion en tiempo real de incidencias y unidades.
               </p>
             </div>
-            <span class="badge text-bg-primary">Preparado para integración</span>
+            <span class="badge text-bg-primary">google maps</span>
           </div>
         </div>
 
         <div class="card-body">
-          <div class="map-placeholder">
-            <div class="text-center">
-              <i class="bi bi-geo-alt-fill map-icon mb-3"></i>
-              <h3 class="h5 fw-bold">Zona de mapa</h3>
-              <p class="text-secondary mb-0">
-                Meter Google Maps para visualizar incidencias y unidades.
-              </p>
-            </div>
+          <google-map
+            height="620px"
+            width="100%"
+            [center]="center"
+            [zoom]="zoom"
+            [options]="mapOptions"
+          >
+            @for (incidente of incidentesFiltrados; track incidente.id) {
+              @if (incidente.latitude && incidente.longitude) {
+                <map-marker
+                  #markerIncidente="mapMarker"
+                  [position]="{ lat: incidente.latitude, lng: incidente.longitude }"
+                  [title]="incidente.nombreCompleto"
+                  [options]="{ icon: obtenerIconoIncidente(incidente.estatus) }"
+                  (mapClick)="abrirInfoIncidente(markerIncidente, incidente)"
+                />
+              }
+            }
 
-            <div class="mock-markers marker marker--danger">INC</div>
-            <div class="mock-markers marker marker--primary">POL</div>
-            <div class="mock-markers marker marker--warning">SAM</div>
-            <div class="mock-markers marker marker--fire">BOM</div>
-          </div>
+            @for (unidad of unidadesFiltradas; track unidad.id) {
+              @if (unidad.latitude && unidad.longitude) {
+                <map-marker
+                  #markerUnidad="mapMarker"
+                  [position]="{ lat: unidad.latitude, lng: unidad.longitude }"
+                  [title]="unidad.id + ' - ' + unidad.cuerpo"
+                  [options]="{
+                    icon: { url: obtenerIconoUnidad(unidad.cuerpo) }
+                  }"
+                  (mapClick)="abrirInfoUnidad(markerUnidad, unidad)"
+                />
+              }
+            }
+
+            @if (marcadorSeleccionado) {
+                <map-info-window
+                    [position]="marcadorSeleccionado.position"
+                    [options]="{ disableAutoPan: false }"
+                    (closeclick)="cerrarInfoWindow()"
+                  >
+                <div class="map-info-window-content">
+                  <div class="fw-semibold mb-1">{{ marcadorSeleccionado.titulo }}</div>
+                  <div class="small text-secondary mb-2">
+                    {{ marcadorSeleccionado.tipo }}
+                  </div>
+                  <div class="small">
+                    {{ marcadorSeleccionado.subtitulo }}
+                  </div>
+                </div>
+              </map-info-window>
+            }
+          </google-map>
         </div>
       </div>
     </div>
@@ -207,13 +244,14 @@
 
         <div class="card-body pt-3">
           @for (incidente of incidentesFiltrados; track incidente.id) {
-            <div
-              class="incident-card mb-3"
-              [ngClass]="[
-                'incident-card--' + incidente.estatus,
-                incidente.asignado ? 'incident-card--asignado' : ''
-              ]"
-            >
+          <div
+            class="incident-card mb-3"
+            [ngClass]="[
+              'incident-card--' + incidente.estatus,
+              incidente.asignado ? 'incident-card--asignado' : ''
+            ]"
+            (click)="centrarEnIncidente(incidente)"
+          >
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                 <div>
                   <div class="fw-semibold">{{ incidente.nombreCompleto }}</div>
@@ -239,7 +277,7 @@
                 {{ incidente.descripcionEmergencia }}
               </div>
 
-              <button class="btn btn-sm btn-outline-dark w-100" (click)="verIncidente(incidente)">
+              <button class="btn btn-sm btn-outline-dark w-100" (click)="$event.stopPropagation(); verIncidente(incidente)">
                 ver incidente
               </button>
             </div>
