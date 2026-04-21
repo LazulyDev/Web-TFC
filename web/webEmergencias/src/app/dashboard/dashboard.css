@@ -1,5 +1,7 @@
 :host {
   display: block;
+  --prote-orange: #FF8200;
+  --prote-blue:#011053;
 }
 
 .dashboard-page {

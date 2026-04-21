@@ -33,7 +33,7 @@
             justify-content: space-between;
             margin: 0;
             padding-left: 2rem;
-            padding-rig: 2rem;
+            padding-right: 2rem;
         }
 
         #titulo{
@@ -209,5 +209,6 @@
                 scale: 0.98;
                 filter: brightness(0.9);
             }
+
 
 

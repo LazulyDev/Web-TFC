@@ -537,7 +537,7 @@ obtenerTimestamp(fecha: string): number {
         case 'online':
           return 'text-bg-primary';
       default:
-         return 'text-bg-secondary';
+          return 'text-bg-secondary';
     }
   }
 
@@ -557,14 +557,39 @@ obtenerTimestamp(fecha: string): number {
     }
   }
 
-  /**
-   * Envía un aviso de emergencia a una unidad específica
-   * @param unidadId:       ID de la unidad (ej: BO-71)
-   * @param contenido:      Cuerpo/descripción del aviso
-   * @param coordenadas:    Coordenadas como string (ej: "40.4168,-3.7038") SERÁN AÑADIDAS EN UN FUTURO
-   */
-  mandarAvisos(unidadId: string, contenido: string, coordenadas: string) {
-    this.mandarAvisosService.enviarAviso(unidadId, contenido, coordenadas).subscribe(
+
+  // MANEJA EL ENVÍO DE EMERGENCIAS EN EL MODAL PARA ASIGNAR AVISOS
+  asignarAvisos(): void {
+    // 1. Validaciones previas
+    if (!this.incidenteSeleccionado || this.unidadesSeleccionadasIds.length === 0) return;
+    
+    const inc = this.incidenteSeleccionado;
+    
+    // 2. IMPORTANTE: Creamos una copia local de los IDs para que no se pierdan 
+    // al cerrar el modal o limpiar variables
+    const copiaIdsUnidades = [...this.unidadesSeleccionadasIds];
+    const coordenadas = `${inc.latitude}, ${inc.longitude}`;
+    const mensaje = inc.descripcionEmergencia || 'Aviso de emergencia, llamar a central';
+    const idIncidencia = inc.id;
+
+    console.log(`Preparando envío para: ${copiaIdsUnidades}`);
+
+    // 3. Primero mandamos los avisos (usando la copia)
+    this.mandarAvisos(
+      copiaIdsUnidades,
+      mensaje,
+      coordenadas,
+      idIncidencia
+    );
+
+    // 4. Después actualizamos la UI (esto cerrará el modal y limpiará los arrays originales)
+    this.guardarAsignacionLocal();
+    console.log("Proceso de asignación finalizado");
+  }
+
+  // MANDA LOS AVISOS AL SERVICIO ENCARGADO DE MANDARLOS A FCM (mandar-avisos-service.ts)
+  mandarAvisos(unidadId: string[], contenido: string, coordenadas: string, incidenciaID: string) {
+    this.mandarAvisosService.enviarMultiplesAvisos(unidadId, contenido, coordenadas, incidenciaID).subscribe(
       (respuesta: any) => {
         console.log('Mensaje enviado con éxito:', respuesta);
       },

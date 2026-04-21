@@ -1,11 +1,17 @@
 import { Routes } from '@angular/router';
-//import path from 'node:path';
 import { Home } from './home/home';
 import { InicioSesion } from './inicio-sesion/inicio-sesion';
 import { Dashboard } from './dashboard/dashboard';
+import { prevencionIDORGuard } from './guards/prevencion-idor-guard';
 
 export const routes: Routes = [
     { path: '', component: Home },
     { path: "login", component: InicioSesion },
-    { path: "dashboard", component: Dashboard }
+
+    // paths bloqueados por los guards 
+    { 
+        path: "dashboard", 
+        component: Dashboard,
+        canActivate: [prevencionIDORGuard]
+    }
 ];

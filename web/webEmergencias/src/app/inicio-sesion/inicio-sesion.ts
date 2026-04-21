@@ -2,17 +2,19 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Firestore } from '@angular/fire/firestore';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-inicio-sesion',
   standalone: true,
-  imports: [],
+  imports: [NgIf],
   templateUrl: './inicio-sesion.html',
   styleUrl: './inicio-sesion.css',
 })
 export class InicioSesion implements OnInit {
-  private authService = inject(AuthService);
-  private router = inject(Router)
+  private authService = inject(AuthService);  // servicio de autenticación de Firebase Auth
+  private router = inject(Router)             // servicio para el uso de rutas dentro de la web
+  errorLogin = false                          // esta variable sirve para diferenciar si el login es correcto o no.
 
   fondoSeleccionado: string = '';
 
@@ -22,6 +24,7 @@ export class InicioSesion implements OnInit {
     '/img/inicio-sesion/luces-policia2.jpg',
     '/img/inicio-sesion/samur.jpeg',
     'img/inicio-sesion/ambulancias.jpg',
+    'img/inicio-sesion/madrid.jpeg'
   ];
 
   ngOnInit(): void {
@@ -45,12 +48,17 @@ export class InicioSesion implements OnInit {
 
   // INICIO DE SESIÓN
   async iniciarSesion(usrname: string, pswd: string): Promise<void> {
-    const esLoginCorrecto = await this.authService.login(usrname, pswd);
-    if (esLoginCorrecto) {
+    try {
+      const esLoginCorrecto = await this.authService.login(usrname, pswd);
+      this.errorLogin = false
+      if (esLoginCorrecto) {
       console.log("usuario y contraseña correctas")
       this.router.navigate(['/dashboard'])
-    } else {
-      console.error("Error al iniciar sesión. usuario o contraseña incorrecta.")
+      }
+
+    } catch (error) {
+      this.errorLogin = true 
+      console.error(`error al iniciar sesión ${error}`)
     }
   }
 }
