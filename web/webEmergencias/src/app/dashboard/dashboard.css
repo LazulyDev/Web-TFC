@@ -4,6 +4,37 @@
   --prote-blue:#011053;
 }
 
+/* ícono estrella parte superior */
+.logo-marca-agua {
+  /* Usamos fixed para que ignore los paddings de los contenedores de Bootstrap */
+  position: fixed; 
+  top: -110px;
+  right: -100px; /* Ajusta este número para que se oculte más o menos la mitad */
+  z-index: 0;   /* Lo mantenemos al fondo */
+  pointer-events: none;
+}
+
+.logo-marca-agua img {
+  height: 500px;
+  width: auto;
+  opacity: 0.08;
+  display: block;
+  
+  /* Rotamos y escalamos un pelín para que no se vean bordes rectos */
+  transform: rotate(-15deg);
+  /* Aseguramos que la rotación no cree huecos blancos */
+  transform-origin: center right; 
+}
+
+/* IMPORTANTE: Para que no salga barra de scroll horizontal por el logo que se sale */
+body, html {
+  overflow-x: hidden !important;
+}
+
+.dashboard-page {
+  overflow-x: hidden;
+}
+
 .dashboard-page {
   background: #f4f7fb;
   min-height: 100vh;
