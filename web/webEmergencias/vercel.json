@@ -1,6 +1,7 @@
 {
   "version": 2,
   "public": true,
+  "outputDirectory": "dist/webEmergencias/browser",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
