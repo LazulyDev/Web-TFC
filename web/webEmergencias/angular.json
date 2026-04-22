@@ -22,7 +22,7 @@
               {
                 "glob": "**/*",
                 "input": "public",
-                "src/_redirects"
+                "output": "/"
               }
             ],
             "styles": [
