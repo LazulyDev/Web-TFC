@@ -180,7 +180,7 @@
                   #markerIncidente="mapMarker"
                   [position]="{ lat: incidente.latitude, lng: incidente.longitude }"
                   [title]="incidente.nombreCompleto"
-                  [options]="{ icon: obtenerIconoIncidente(incidente.estatus) }"
+                  [options]="obtenerOpcionesMarcadorIncidente(incidente)" 
                   (mapClick)="abrirInfoIncidente(markerIncidente, incidente)"
                 />
               }
@@ -192,9 +192,7 @@
                   #markerUnidad="mapMarker"
                   [position]="{ lat: unidad.latitude, lng: unidad.longitude }"
                   [title]="unidad.id + ' - ' + unidad.cuerpo"
-                  [options]="{
-                    icon: { url: obtenerIconoUnidad(unidad.cuerpo) }
-                  }"
+                  [options]="obtenerOpcionesMarcadorUnidad(unidad)"
                   (mapClick)="abrirInfoUnidad(markerUnidad, unidad)"
                 />
               }
@@ -337,6 +335,7 @@
   </div>
 </div>
 
+<!-- Modal parar mandar avisos -->
 @if (modalAbierto && incidenteSeleccionado) {
   <div class="custom-modal-backdrop" (click)="cerrarModalIncidente()"></div>
 

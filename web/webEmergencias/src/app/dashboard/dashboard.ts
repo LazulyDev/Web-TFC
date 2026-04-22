@@ -162,38 +162,129 @@ export class Dashboard implements OnInit {
       return this.obtenerTimestamp(b.fecha) - this.obtenerTimestamp(a.fecha);
     });
   }
+
+  // FUNCIÓN PARA ACTUALIZAR EL MAPA EN TIEMPO REAL
   actualizarMarcadoresMapa(): void {
-    this.marcadoresIncidentes = this.incidentesFiltrados
-      .filter((incidente: any) =>
-        typeof incidente.latitude === 'number' &&
-        typeof incidente.longitude === 'number'
-      )
-      .map((incidente: any) => ({
-        lat: incidente.latitude,
-        lng: incidente.longitude
-      }));
+  this.marcadoresIncidentes = this.incidentesFiltrados
+    .filter((incidente: any) =>
+      typeof incidente.latitude === 'number' &&
+      typeof incidente.longitude === 'number'
+    )
+    .map((incidente: any) => ({
+      lat: incidente.latitude,
+      lng: incidente.longitude
+    }));
 
+  // comprueba que la API de Google está. si no funciona hace un mapeo para no romper nada
+  if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+    console.warn('La API de Google Maps no está cargada. Los iconos de unidades no se escalarán.');
     this.marcadoresUnidades = this.unidadesFiltradas
-      .filter((unidad) =>
-        typeof unidad.latitude === 'number' &&
-        typeof unidad.longitude === 'number'
-      )
-      .map((unidad) => ({
-        position: {
-          lat: unidad.latitude as number,
-          lng: unidad.longitude as number
-        },
-        title: `${unidad.id} - ${unidad.cuerpo}`,
-        options: {
-          title: `${unidad.id} - ${unidad.cuerpo}`,
-          icon: {
-            url: this.obtenerIconoUnidad(unidad.cuerpo)
-          }
-        }
+      .filter(u => typeof u.latitude === 'number' && typeof u.longitude === 'number')
+      .map(u => ({
+        position: { lat: u.latitude as number, lng: u.longitude as number },
+        title: `${u.id} - ${u.cuerpo}`,
+        options: { title: `${u.id} - ${u.cuerpo}` } // Sin icono personalizado hasta que cargue la API
       }));
-
-    this.centrarMapaSiHayDatos();
+    return;
   }
+
+  
+
+  //  marca las unidades
+  this.marcadoresUnidades = this.unidadesFiltradas
+    .filter(u => typeof u.latitude === 'number' && typeof u.longitude === 'number')
+    .map(u => {
+      const urlIcono = this.obtenerIconoUnidad(u.cuerpo);
+      const tamanoEscalado = new google.maps.Size(40, 40);  // Ajuste de tamaño (va en px, para el Rober del futuro)
+      const puntoAnclaje = new google.maps.Point(16, 32);   // Ajuste que pone el ícono en el centro para tener la unidad precisa en el mapa
+
+      const miIconoPersonalizado: google.maps.Icon = {
+        url: urlIcono,
+        scaledSize: tamanoEscalado, // El tamaño visual final
+        anchor: puntoAnclaje        // ajuste de la posición
+      };
+
+      return {
+        position: {
+          lat: u.latitude as number,
+          lng: u.longitude as number
+        },
+        title: `${u.id} - ${u.cuerpo}`,
+        options: {
+          title: `${u.id} - ${u.cuerpo}`,
+          icon: miIconoPersonalizado // Asigna el ícono
+        }
+      };
+    });
+
+  this.centrarMapaSiHayDatos();
+}
+
+// fUNCIÓN PARA OBTENER EL ÍCONO PERSONALIZADO DE LAS UNIDADES
+  obtenerOpcionesMarcadorUnidad(unidad: Unidad): google.maps.MarkerOptions {
+    return {
+      title: `${unidad.id} - ${unidad.cuerpo}`,
+      icon: {
+        url: this.obtenerIconoUnidad(unidad.cuerpo),
+        // Aquí forzamos el tamaño. Si el icono sigue siendo grande, baja estos números a 30, 30
+        scaledSize: { width: 40, height: 40 } as google.maps.Size,
+        anchor: { x: 20, y: 20 } as google.maps.Point
+      }
+    };
+  }
+
+  // OBTIENE EL ÍCONO DE LA UNIDAD
+  obtenerIconoUnidad(cuerpo: string): string {
+    const cuerpoNormalizado = (cuerpo || '').trim().toLowerCase();
+
+    switch (cuerpoNormalizado) {
+      case 'policía municipal':
+      case 'policia municipal':
+      case 'police':
+        return 'img/iconosMaps/pmm.png';
+
+      case 'samur-pc':
+      case 'samur':
+        return 'img/iconosMaps/samur.png';
+
+      case 'bomberos':
+        return 'img/iconosMaps/bomberos.webp';
+
+      default:
+        return '';
+    }
+  }
+
+  // Define la ruta a tus iconos de incidentes
+  obtenerRutaIconoIncidente(estatus: string): string {
+    const estatusNormalizado = (estatus || '').trim().toLowerCase();
+    const baseRuta = 'img/iconosMaps';
+
+    //return `${baseRuta}/sos.png`
+
+    switch (estatusNormalizado) {
+      case 'prioritario':
+        return `${baseRuta}/sosPrioritario.png`;
+      case 'urgente':
+        return `${baseRuta}/sosUrgente.png`;
+      case 'moderado':
+        return `${baseRuta}/sosModerado.png`;
+      default:
+        return `${baseRuta}/sos.png`;
+    }
+  }
+
+// Genera las opciones completas para el marcador
+obtenerOpcionesMarcadorIncidente(incidente: Incidente): google.maps.MarkerOptions {
+  return {
+    title: incidente.nombreCompleto,
+    icon: {
+      url: this.obtenerRutaIconoIncidente(incidente.estatus),
+      scaledSize: { width: 40, height: 40 } as google.maps.Size,
+      anchor: { x: 20, y: 20 } as google.maps.Point
+    }
+  };
+}
 
   centrarMapaSiHayDatos(): void {
     const primerIncidente = this.marcadoresIncidentes[0];
@@ -271,26 +362,7 @@ export class Dashboard implements OnInit {
     });
   }
 
-  obtenerIconoUnidad(cuerpo: string): string {
-    const cuerpoNormalizado = (cuerpo || '').trim().toLowerCase();
-
-    switch (cuerpoNormalizado) {
-      case 'policía municipal':
-      case 'policia municipal':
-      case 'police':
-        return 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-
-      case 'samur-pc':
-      case 'samur':
-        return 'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
-
-      case 'bomberos':
-        return 'http://maps.google.com/mapfiles/ms/icons/red-dot.png';
-
-      default:
-        return 'http://maps.google.com/mapfiles/ms/icons/green-dot.png';
-    }
-  }
+  
 
   obtenerIconoIncidente(estatus: string): google.maps.Icon {
     let color = 'red-dot';
@@ -560,13 +632,11 @@ obtenerTimestamp(fecha: string): number {
 
   // MANEJA EL ENVÍO DE EMERGENCIAS EN EL MODAL PARA ASIGNAR AVISOS
   asignarAvisos(): void {
-    // 1. Validaciones previas
     if (!this.incidenteSeleccionado || this.unidadesSeleccionadasIds.length === 0) return;
     
     const inc = this.incidenteSeleccionado;
     
-    // 2. IMPORTANTE: Creamos una copia local de los IDs para que no se pierdan 
-    // al cerrar el modal o limpiar variables
+    // crea una copia local de los id
     const copiaIdsUnidades = [...this.unidadesSeleccionadasIds];
     const coordenadas = `${inc.latitude}, ${inc.longitude}`;
     const mensaje = inc.descripcionEmergencia || 'Aviso de emergencia, llamar a central';
@@ -574,7 +644,7 @@ obtenerTimestamp(fecha: string): number {
 
     console.log(`Preparando envío para: ${copiaIdsUnidades}`);
 
-    // 3. Primero mandamos los avisos (usando la copia)
+    // mandar los avisos
     this.mandarAvisos(
       copiaIdsUnidades,
       mensaje,
@@ -582,7 +652,7 @@ obtenerTimestamp(fecha: string): number {
       idIncidencia
     );
 
-    // 4. Después actualizamos la UI (esto cerrará el modal y limpiará los arrays originales)
+    // actualizamos la UI
     this.guardarAsignacionLocal();
     console.log("Proceso de asignación finalizado");
   }
