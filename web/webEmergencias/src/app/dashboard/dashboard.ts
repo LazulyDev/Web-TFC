@@ -100,14 +100,16 @@ export class Dashboard implements OnInit {
     });
   }
 
+  // FUNCIÓN PARA LOS FILTROS DEL DASHBOARD
   aplicarFiltros(): void {
     this.unidadesFiltradas = this.unidades.filter((unidad) => {
+      
       // oculta unidades no operativas
       const estadoNormalizado = (unidad.estado || '').trim().toLowerCase();
       const esVisible =
         estadoNormalizado === 'disponible' ||
-        estadoNormalizado === 'busy' ||
-        estadoNormalizado === 'online';
+        estadoNormalizado === 'en camino' ||
+        estadoNormalizado === 'en escena';
 
       if (!esVisible) {
         return false;
@@ -117,7 +119,7 @@ export class Dashboard implements OnInit {
         !this.filtroCuerpo || unidad.cuerpo === this.filtroCuerpo;
 
       const coincideEstado =
-        !this.filtroEstado || unidad.estado === this.filtroEstado;
+        !this.filtroEstado || (unidad.estado || '').trim().toLowerCase() === this.filtroEstado.toLowerCase();
 
       return coincideCuerpo && coincideEstado;
     });
@@ -483,12 +485,12 @@ obtenerTimestamp(fecha: string): number {
 
   unidadEsSeleccionable(unidad: Unidad): boolean {
     const estado = (unidad.estado || '').trim().toLowerCase();
-    return estado === 'disponible' || estado === 'online';
+    return estado === 'disponible';
   }
 
   unidadEstaBloqueada(unidad: Unidad): boolean {
     const estado = (unidad.estado || '').trim().toLowerCase();
-    return estado === 'busy';
+    return estado === 'en camino' || estado === 'en escena';
   }
 
   toggleUnidadSeleccionada(unidad: Unidad): void {
@@ -516,7 +518,7 @@ obtenerTimestamp(fecha: string): number {
   get unidadesOperativasModal(): Unidad[] {
     return this.unidades.filter((unidad) => {
       const estado = (unidad.estado || '').trim().toLowerCase();
-      return estado === 'disponible' || estado === 'online' || estado === 'busy';
+      return estado === 'disponible' || estado === 'en camino' || estado === 'en escena';
     });
   }
 
@@ -567,10 +569,10 @@ obtenerTimestamp(fecha: string): number {
     switch (estado) {
       case 'disponible':
         return 'disponible';
-      case 'online':
-        return 'online';
-      case 'busy':
-        return 'ocupada';
+      case 'en camino':
+        return 'en camino';
+      case 'en escena':
+        return 'en escena';
       default:
         return unidad.estado || 'sin estado';
     }
@@ -604,15 +606,14 @@ obtenerTimestamp(fecha: string): number {
     switch ((estado || '').trim().toLowerCase()) {
       case 'disponible':
         return 'text-bg-success';
-      case 'busy':
+      case 'en camino':
         return 'text-bg-warning';
-        case 'online':
-          return 'text-bg-primary';
+      case 'en escena':
+        return 'text-bg-danger';
       default:
-          return 'text-bg-secondary';
+        return 'text-bg-secondary';
     }
   }
-
 
   obtenerBadgeIncidente(estatus: string): string {
     switch ((estatus || '').trim().toLowerCase()) {
