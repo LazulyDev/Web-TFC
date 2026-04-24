@@ -261,7 +261,7 @@
           <div
             class="incident-card mb-3"
             [ngClass]="[
-              'incident-card--' + incidente.estatus,
+              'incident-card--' + incidente.status,
               incidente.asignado ? 'incident-card--asignado' : ''
             ]"
             (click)="centrarEnIncidente(incidente)"
@@ -273,8 +273,8 @@
                 </div>
 
                 <div class="d-flex flex-column align-items-end gap-2">
-                  <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.estatus)">
-                    {{ incidente.estatus }}
+                  <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidente.status)">
+                    {{ incidente.status }}
                   </span>
 
                   @if (incidente.asignado) {
@@ -388,10 +388,13 @@
               </div>
 
               <div class="mb-3">
-                <div class="small text-secondary">prioridad</div>
-                <span class="badge rounded-pill" [ngClass]="obtenerBadgeIncidente(incidenteSeleccionado.estatus)">
-                  {{ incidenteSeleccionado.estatus }}
-                </span>
+                <label class="form-label small text-secondary">prioridad</label>
+                <select class="form-select" [(ngModel)]="estatusSeleccionado" (ngModelChange)="cambiarStatus($event)">
+                  <option value="normal">normal</option>
+                  <option value="moderado">moderado</option>
+                  <option value="urgente">urgente</option>
+                  <option value="prioritario">prioritario</option>
+                </select>
               </div>
 
               <div class="mb-3">

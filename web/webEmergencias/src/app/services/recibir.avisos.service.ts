@@ -5,7 +5,9 @@ import {
   collection, 
   collectionData, 
   orderBy,
-  CollectionReference
+  CollectionReference,
+  doc,
+  updateDoc
 } from '@angular/fire/firestore';
 import { or } from '@angular/fire/firestore/lite';
 import { error } from 'console';
@@ -24,6 +26,12 @@ export class RecibirAvisosService {
     console.log("Avisos recopilados con éxito")
 
     return datos
+  }
+
+  // FUNCIÓN PARA ACTUALIZAR UN INCIDENTE
+  actualizarIncidente(id: string, data: any) {
+    const docRef = doc(this.firestore, 'Emergencias', id);
+    return updateDoc(docRef, data);
   }
   
 }

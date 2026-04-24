@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GoogleMap, MapMarker, MapInfoWindow } from '@angular/google-maps';
@@ -15,7 +15,7 @@ interface Incidente {
   telefono: string;
   tipoSangre?: string;
   descripcionEmergencia: string;
-  estatus: string;
+  status: string;
   fecha: string;
   workers: string[];
   asignado: boolean;
@@ -33,8 +33,8 @@ interface Incidente {
 export class Dashboard implements OnInit {
   private unidadService = inject(NuevaUnidadService);
   private mandarAvisosService = inject(MandarAvisosService)
-  private recibirAvisosService = inject(RecibirAvisosService)
-
+  private recibirAvisosService = inject(RecibirAvisosService);
+  private cdr = inject(ChangeDetectorRef);
   unidades: Unidad[] = [];
   unidadesFiltradas: Unidad[] = [];
   unidadSeleccionada: Unidad | null = null;
@@ -42,6 +42,7 @@ export class Dashboard implements OnInit {
   filtroCuerpo = '';
   filtroEstado = '';
   filtroIncidentes = 'urgencia';
+  estatusSeleccionado = '';
   incidentesFiltrados: Incidente[] = [];
 
   // mapa
@@ -142,7 +143,7 @@ export class Dashboard implements OnInit {
 
     aplicarOrdenIncidentes(): void {
     const incidentesVisibles = this.incidentesActivos.filter((incidente) => {
-      const estadoNormalizado = (incidente.estatus || '').trim().toLowerCase();
+      const estadoNormalizado = (incidente.status || '').trim().toLowerCase();
 
       // oculta incidentes terminados o resueltos
       return estadoNormalizado !== 'terminado' && estadoNormalizado !== 'finalizado' && estadoNormalizado !== 'resuelto';
@@ -155,7 +156,7 @@ export class Dashboard implements OnInit {
         return this.obtenerTimestamp(b.fecha) - this.obtenerTimestamp(a.fecha);
       }
 
-      const diferenciaUrgencia = this.obtenerPesoUrgencia(b.estatus) - this.obtenerPesoUrgencia(a.estatus);
+      const diferenciaUrgencia = this.obtenerPesoUrgencia(b.status) - this.obtenerPesoUrgencia(a.status);
 
       if (diferenciaUrgencia !== 0) {
         return diferenciaUrgencia;
@@ -246,7 +247,7 @@ export class Dashboard implements OnInit {
   if (marcador.tipo === 'incidente') {
     // Para incidentes, buscamos el incidente real para saber su estatus
     const incidenteReal = this.incidentesActivos.find(i => i.nombreCompleto === marcador.titulo);
-    return incidenteReal ? this.obtenerRutaIconoIncidente(incidenteReal.estatus) : 'img/iconosMaps/sos.png';
+    return incidenteReal ? this.obtenerRutaIconoIncidente(incidenteReal.status) : 'img/iconosMaps/sos.png';
   }
 
   return 'img/iconosMaps/default.png';
@@ -297,7 +298,7 @@ obtenerOpcionesMarcadorIncidente(incidente: Incidente): google.maps.MarkerOption
   return {
     title: incidente.nombreCompleto,
     icon: {
-      url: this.obtenerRutaIconoIncidente(incidente.estatus),
+      url: this.obtenerRutaIconoIncidente(incidente.status),
       scaledSize: { width: 40, height: 40 } as google.maps.Size,
       anchor: { x: 20, y: 20 } as google.maps.Point
     }
@@ -490,6 +491,7 @@ obtenerTimestamp(fecha: string): number {
     abrirModalIncidente(incidente: Incidente): void {
     this.incidenteSeleccionado = incidente;
     this.unidadesSeleccionadasIds = [...(incidente.workers || [])];
+    this.estatusSeleccionado = incidente.status;
     this.modalAbierto = true;
   }
 
@@ -497,7 +499,36 @@ obtenerTimestamp(fecha: string): number {
     this.modalAbierto = false;
     this.incidenteSeleccionado = null;
     this.unidadesSeleccionadasIds = [];
+    this.estatusSeleccionado = '';
   }
+
+  // HACE UN CAMBIO DEL STATUS DEL AVISO EN LA BASE DE DATOS PARA PODER EDITARLO
+  cambiarStatus(nuevoStatus: string): void {
+  if (!this.incidenteSeleccionado) return;
+
+  const idActual = this.incidenteSeleccionado.id;
+
+  this.recibirAvisosService.actualizarIncidente(idActual, { status: nuevoStatus })
+    .then(() => {
+      console.log('Update exitoso en Firebase');
+      this.incidenteSeleccionado = {
+        ...this.incidenteSeleccionado!,
+        status: nuevoStatus
+      };
+
+      this.incidentesActivos = this.incidentesActivos.map(inc => 
+        inc.id === idActual ? { ...inc, status: nuevoStatus } : inc
+      );
+
+      this.aplicarOrdenIncidentes();
+
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
+    })
+    .catch(err => {
+      console.error('Error al cambiar status:', err);
+    });
+}
 
   unidadEsSeleccionable(unidad: Unidad): boolean {
     const estado = (unidad.estado || '').trim().toLowerCase();
@@ -701,7 +732,7 @@ obtenerTimestamp(fecha: string): number {
             telefono: item.numeroTelefono ?? item.telefono ?? '',
             tipoSangre: item.codigoSanguineo ?? item.tipoSangre ?? '',
             descripcionEmergencia: item.description ?? item.descripcionEmergencia ?? item.descripcion ?? '',
-            estatus: estatusNormalizado || 'normal',
+            status: estatusNormalizado || 'normal',
             fecha: item.date ?? '',
             workers,
             asignado: workers.length > 0,
