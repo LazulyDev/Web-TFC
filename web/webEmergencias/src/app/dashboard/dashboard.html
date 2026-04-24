@@ -203,19 +203,31 @@
             }
 
             @if (marcadorSeleccionado) {
-                <map-info-window
-                    [position]="marcadorSeleccionado.position"
-                    [options]="{ disableAutoPan: false }"
-                    (closeclick)="cerrarInfoWindow()"
-                  >
-                <div class="map-info-window-content">
+              <map-info-window
+                  [position]="marcadorSeleccionado.position"
+                  [options]="{ disableAutoPan: false }"
+                  (closeclick)="cerrarInfoWindow()"
+                >
+                <div id="cabecera">
+                  <div class="map-info-window-content">
+                  <div class="icono-decor">
+                    <img [src]="getIconoInfoWindow(marcadorSeleccionado)" 
+                          [alt]="marcadorSeleccionado.titulo"
+                          style="width: 40px; height: 40px; object-fit: contain;">
+                  </div>
                   <div class="fw-semibold mb-1">{{ marcadorSeleccionado.titulo }}</div>
+                </div>
                   <div class="small text-secondary mb-2">
                     {{ marcadorSeleccionado.tipo }}
                   </div>
-                  <div class="small">
+                  <div class="small mb-2">
                     {{ marcadorSeleccionado.subtitulo }}
                   </div>
+                  @if (marcadorSeleccionado.tipo === 'unidad') {
+                    <span class="badge rounded-pill" [ngClass]="obtenerBadgeEstado(marcadorSeleccionado.subtitulo.split(' - ')[1])">
+                      {{ marcadorSeleccionado.subtitulo.split(' - ')[1] }}
+                    </span>
+                  }
                 </div>
               </map-info-window>
             }

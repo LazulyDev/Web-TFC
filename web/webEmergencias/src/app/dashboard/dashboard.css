@@ -122,6 +122,32 @@ body, html {
   position: relative;
   min-height: 100%;
 }
+/* 2. Ajustamos tu contenedor específico */
+.map-info-window-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px; /* Truco rápido para subir todo el bloque si el padding de arriba no cede */
+}
+/* 2. El contenedor del icono */
+.icono-decor {
+  width: 45px;             /* Ancho fijo para que no baile */
+  height: 45px;
+  flex-shrink: 0;          /* Evita que el texto aplaste al icono */
+  background: #f4f4f4;     /* Un fondito suave por si el logo es transparente */
+  border-radius: 8px;      /* Bordes un poco redondeados */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;;
+}
+
+/* 3. La imagen dentro del contenedor */
+.icono-decor img {
+  width: 80%;              /* Que respire un poco dentro del cuadro */
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
 
 body {
   height: 100%;
@@ -491,3 +517,4 @@ google-map {
   min-width: 180px;
   max-width: 240px;
 }
+

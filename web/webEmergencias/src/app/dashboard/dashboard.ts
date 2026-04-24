@@ -188,9 +188,7 @@ export class Dashboard implements OnInit {
         options: { title: `${u.id} - ${u.cuerpo}` } // Sin icono personalizado hasta que cargue la API
       }));
     return;
-  }
-
-  
+  } 
 
   //  marca las unidades
   this.marcadoresUnidades = this.unidadesFiltradas
@@ -234,7 +232,25 @@ export class Dashboard implements OnInit {
       }
     };
   }
+  // MUESTRA EL ÍCONO EN LA VENTANA DEL MAPA
+  getIconoInfoWindow(marcador: any): string {
+  if (!marcador) return 'img/iconosMaps/default.png';
 
+  if (marcador.tipo === 'unidad') {
+    // Extraemos el cuerpo del subtítulo (que guardaste como "Cuerpo - Estado")
+    // O mejor aún, buscamos la unidad original por el ID (titulo)
+    const unidadReal = this.unidades.find(u => u.id === marcador.titulo);
+    return unidadReal ? this.obtenerIconoUnidad(unidadReal.cuerpo) : 'img/iconosMaps/default.png';
+  }
+
+  if (marcador.tipo === 'incidente') {
+    // Para incidentes, buscamos el incidente real para saber su estatus
+    const incidenteReal = this.incidentesActivos.find(i => i.nombreCompleto === marcador.titulo);
+    return incidenteReal ? this.obtenerRutaIconoIncidente(incidenteReal.estatus) : 'img/iconosMaps/sos.png';
+  }
+
+  return 'img/iconosMaps/default.png';
+}
   // OBTIENE EL ÍCONO DE LA UNIDAD
   obtenerIconoUnidad(cuerpo: string): string {
     const cuerpoNormalizado = (cuerpo || '').trim().toLowerCase();
