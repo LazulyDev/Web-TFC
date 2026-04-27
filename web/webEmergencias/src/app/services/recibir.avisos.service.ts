@@ -33,5 +33,7 @@ export class RecibirAvisosService {
     const docRef = doc(this.firestore, 'Emergencias', id);
     return updateDoc(docRef, data);
   }
+
+  //FUNCIÓN PARA ACTUALIZAR EL ESTADO DE UN INCI
   
 }

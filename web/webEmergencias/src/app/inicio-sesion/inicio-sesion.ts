@@ -25,7 +25,9 @@ export class InicioSesion implements OnInit {
     '/img/inicio-sesion/samur.jpeg',
     'img/inicio-sesion/ambulancias.jpg',
     'img/inicio-sesion/madrid.jpeg',
-    'img/inicio-sesion/uniforme.jpeg'
+    'img/inicio-sesion/uniforme.jpeg',
+    'img/inicio-sesion/retrovisor.jpeg',
+    'img/inicio-sesion/psa.jpeg'
   ];
 
   ngOnInit(): void {

@@ -518,3 +518,29 @@ google-map {
   max-width: 240px;
 }
 
+/* Estilos para el modal de confirmación */
+.confirmation-modal {
+  width: min(400px, 100%);
+  max-height: 50vh;
+}
+
+.btn-cancelar {
+  background-color: var(--prote-blue);
+  color: white;
+  border: none;
+}
+
+.btn-cancelar:hover {
+  background-color: #010e4a; /* darker blue */
+}
+
+.btn-finalizar {
+  background-color: var(--prote-orange);
+  color: white;
+  border: none;
+}
+
+.btn-finalizar:hover {
+  background-color: #e67300; /* darker orange */
+}
+

@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Database, ref, set, object, listVal, objectVal} from '@angular/fire/database';
+import { Database, ref, set, object, listVal, objectVal, update} from '@angular/fire/database';
 import { Unidad } from '../models/Unidad';
 import { EMPTY, Observable, throwError } from 'rxjs';
 
@@ -34,6 +34,18 @@ export class NuevaUnidadService {
     }
   }
 
-  // FUNCIÓN PARA BUSCAR UNA SOLA UNIDAD
-  buscarUnidadPorId(){}
+  // FUNCIÓN PARA ELIMINAR INFORMACIÓN DE UNA UNIDAD.
+  async eliminarInfoUnidad(unidadID : string){
+    try {
+      const unidadRef = ref(this.bbdd, `unidades/${unidadID}`)
+      await update(unidadRef,{
+        currentCaseId: null,
+        hasActiveCase: false
+      })
+      console.log("conexión con firebase correcta")
+    } catch (error) {
+      console.log(`error al actualizar las unidades: error -> ${error}`)
+      throw error
+    }
+  }
 }

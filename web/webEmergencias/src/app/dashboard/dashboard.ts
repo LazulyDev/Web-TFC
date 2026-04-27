@@ -74,6 +74,7 @@ export class Dashboard implements OnInit {
   } | null = null;
 
   modalAbierto = false;
+  modalConfirmacionAbierto = false;
   incidenteSeleccionado: Incidente | null = null;
   unidadesSeleccionadasIds: string[] = [];
 
@@ -500,6 +501,45 @@ obtenerTimestamp(fecha: string): number {
     this.incidenteSeleccionado = null;
     this.unidadesSeleccionadasIds = [];
     this.estatusSeleccionado = '';
+  }
+
+  abrirModalConfirmacion(): void {
+    this.modalConfirmacionAbierto = true;
+  }
+
+  cerrarModalConfirmacion(): void {
+    this.modalConfirmacionAbierto = false;
+  }
+
+  async confirmarFinalizar() {
+    console.log("iniciando finalización del aviso")
+    try {
+      const unidadUID = this.unidadSeleccionada?.UID
+
+      // Intenta eliminar la info de la unidad si existe
+      if(unidadUID){
+        console.log("Eliminando info de unidad:", unidadUID)
+        await this.unidadService.eliminarInfoUnidad(unidadUID)
+      } else {
+        console.log("No hay unidad UID, continuando con finalización local")
+      }
+      
+      // Actualiza el estado del incidente a Finalizado
+      const incidenteID = this.incidenteSeleccionado?.id
+      
+      if(incidenteID){
+        this.recibirAvisosService.actualizarIncidente(incidenteID, { status: "Finalizado" })
+        console.log("Status del aviso ha cambiado a Finalizado")
+      }
+
+      // deja de mostrar el modal
+      this.finalizarIncidenciaLocal()
+      this.cerrarModalConfirmacion()
+
+      console.log("Aviso finalizado con éxito")
+    } catch (error) {
+      console.error(`error al finalizar aviso: Error -> ${error}`)
+    }
   }
 
   // HACE UN CAMBIO DEL STATUS DEL AVISO EN LA BASE DE DATOS PARA PODER EDITARLO
