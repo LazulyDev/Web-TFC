@@ -111,7 +111,8 @@ export class Dashboard implements OnInit {
       const esVisible =
         estadoNormalizado === 'disponible' ||
         estadoNormalizado === 'en camino' ||
-        estadoNormalizado === 'en escena';
+        estadoNormalizado === 'en escena' ||
+        estadoNormalizado === 'finalización solicitada';
 
       if (!esVisible) {
         return false;
@@ -511,17 +512,19 @@ obtenerTimestamp(fecha: string): number {
     this.modalConfirmacionAbierto = false;
   }
 
+  // FUNCIÓN PARA LA FINALIZACIÓN DE UN AVISO
+  // se ejecuta cuando se acepta la finalización de un aviso.
   async confirmarFinalizar() {
     console.log("iniciando finalización del aviso")
     try {
-      const unidadUID = this.unidadSeleccionada?.UID
-
-      // Intenta eliminar la info de la unidad si existe
-      if(unidadUID){
-        console.log("Eliminando info de unidad:", unidadUID)
-        await this.unidadService.eliminarInfoUnidad(unidadUID)
+      // Intenta eliminar la info de las unidades asignadas si existen
+      if (this.incidenteSeleccionado?.workers && this.incidenteSeleccionado.workers.length > 0) {
+        for (const unidadUID of this.incidenteSeleccionado.workers) {
+          console.log("Eliminando info de unidad:", unidadUID)
+          await this.unidadService.eliminarInfoUnidad(unidadUID)
+        }
       } else {
-        console.log("No hay unidad UID, continuando con finalización local")
+        console.log("No hay unidades asignadas, continuando con finalización local")
       }
       
       // Actualiza el estado del incidente a Finalizado
@@ -697,6 +700,8 @@ obtenerTimestamp(fecha: string): number {
         return 'text-bg-warning';
       case 'en escena':
         return 'text-bg-danger';
+      case 'finalización solicitada':
+        return 'text-bg-info';
       default:
         return 'text-bg-secondary';
     }

@@ -126,7 +126,7 @@ body, html {
 .map-info-window-content {
   display: flex;
   align-items: flex-start;
-  gap: 12px; /* Truco rápido para subir todo el bloque si el padding de arriba no cede */
+  gap: 12px; 
 }
 /* 2. El contenedor del icono */
 .icono-decor {
@@ -524,13 +524,13 @@ google-map {
   max-height: 50vh;
 }
 
-.btn-cancelar {
+.btn-prote-blue {
   background-color: var(--prote-blue);
   color: white;
   border: none;
 }
 
-.btn-cancelar:hover {
+.btn-prote-blue:hover {
   background-color: #010e4a; /* darker blue */
 }
 

@@ -39,10 +39,11 @@ export class NuevaUnidadService {
     try {
       const unidadRef = ref(this.bbdd, `unidades/${unidadID}`)
       await update(unidadRef,{
-        currentCaseId: null,
-        hasActiveCase: false
+        currentCaseId: "",
+        hasActiveCase: false,
+        estado: "Disponible"
       })
-      console.log("conexión con firebase correcta")
+      console.log("Datos actualiados con éxito")
     } catch (error) {
       console.log(`error al actualizar las unidades: error -> ${error}`)
       throw error
