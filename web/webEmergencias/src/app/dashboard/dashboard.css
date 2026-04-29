@@ -38,6 +38,21 @@ body, html {
 .dashboard-page {
   background: #f4f7fb;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#contenido {
+  height: 95vh !important;
+}
+
+.dashboard-main-row {
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-main-row > .col-12 {
+  min-height: 0;
 }
 
 .dashboard-kpi {
@@ -122,6 +137,69 @@ body, html {
   position: relative;
   min-height: 100%;
 }
+
+.dashboard-map-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dashboard-map-card .card-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+}
+
+.dashboard-map-card google-map,
+.dashboard-map-card .dashboard-google-map {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.dashboard-incident-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.dashboard-incident-card .card-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.incident-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.dashboard-units-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.dashboard-units-card .card-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dashboard-units-card .units-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
 /* 2. Ajustamos tu contenedor específico */
 .map-info-window-content {
   display: flex;
@@ -532,6 +610,18 @@ google-map {
 
 .btn-prote-blue:hover {
   background-color: #010e4a; /* darker blue */
+}
+
+.btn-prote-blue-modal {
+  color: var(--prote-blue);
+  border-color: var(--prote-blue);
+}
+
+.btn-prote-blue-modal:hover,
+.btn-prote-blue-modal:focus {
+  color: #fff;
+  background-color: var(--prote-blue);
+  border-color: var(--prote-blue);
 }
 
 .btn-finalizar {

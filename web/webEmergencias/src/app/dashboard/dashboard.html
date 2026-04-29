@@ -23,7 +23,7 @@
         <div class="card-body d-flex align-items-center justify-content-between">
           <div>
             <p class="kpi-label mb-1">Incidentes activos</p>
-            <h2 class="kpi-value mb-0">{{ incidentesActivos.length }}</h2>
+            <h2 class="kpi-value mb-0">{{ incidentesFiltrados.length }}</h2>
           </div>
           <div class="kpi-icon bg-danger-subtle text-danger">
             <i class="bi bi-exclamation-octagon"></i>
@@ -75,10 +75,10 @@
     </div>
   </div>
 
-  <div class="row g-4">
+  <div class="row g-4" id="contenido"> 
 
     <!-- columna izquierda -->
-    <div class="col-12 col-xl-3">
+    <div class="col-12 col-xl-3 h-100 d-flex flex-column">
 
       <!-- filtros -->
       <div class="card border-0 shadow-sm mb-4">
@@ -113,7 +113,7 @@
       </div>
 
       <!-- unidades -->
-      <div class="card border-0 shadow-sm">
+      <div class="card border-0 shadow-sm h-100 dashboard-units-card">
         <div class="card-header bg-white border-0 pb-0">
           <div class="d-flex justify-content-between align-items-center">
             <h2 class="h6 fw-bold mb-0">Unidades disponibles</h2>
@@ -121,8 +121,8 @@
           </div>
         </div>
 
-        <div class="card-body pt-3">
-          <div class="units-list">
+        <div class="card-body pt-3 d-flex flex-column overflow-hidden">
+          <div class="units-list flex-fill overflow-auto">
             @for (unidad of unidadesFiltradas; track unidad.id) {
               <button
                 type="button"
@@ -158,7 +158,7 @@
 
     <!-- centro -->
     <div class="col-12 col-xl-6">
-      <div class="card border-0 shadow-sm h-100">
+      <div class="card border-0 shadow-sm h-100 dashboard-map-card">
         <div class="card-header bg-white border-0">
           <div class="d-flex justify-content-between align-items-center">
             <div>
@@ -171,9 +171,10 @@
           </div>
         </div>
 
-        <div class="card-body">
+          <div class="card-body d-flex p-0">
           <google-map
-            height="620px"
+            class="dashboard-google-map flex-fill"
+            height="100%"
             width="100%"
             [center]="center"
             [zoom]="zoom"
@@ -238,10 +239,10 @@
     </div>
 
     <!-- derecha -->
-    <div class="col-12 col-xl-3">
+    <div class="col-12 col-xl-3 h-100 d-flex flex-column">
 
       <!-- incidentes -->
-      <div class="card border-0 shadow-sm mb-4">
+      <div class="card border-0 shadow-sm mb-4 dashboard-incident-card">
         <div class="card-header bg-white border-0 pb-0">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="h6 fw-bold mb-0">Incidentes activos</h2>
@@ -257,16 +258,17 @@
           </div>
         </div>
 
-        <div class="card-body pt-3">
-          @for (incidente of incidentesFiltrados; track incidente.id) {
-          <div
-            class="incident-card mb-3"
-            [ngClass]="[
-              'incident-card--' + incidente.status,
-              incidente.asignado ? 'incident-card--asignado' : ''
-            ]"
-            (click)="centrarEnIncidente(incidente)"
-          >
+        <div class="card-body pt-3 d-flex flex-column overflow-hidden">
+          <div class="incident-list flex-fill overflow-auto">
+            @for (incidente of incidentesFiltrados; track incidente.id) {
+            <div
+              class="incident-card mb-3"
+              [ngClass]="[
+                'incident-card--' + incidente.status,
+                incidente.asignado ? 'incident-card--asignado' : ''
+              ]"
+              (click)="centrarEnIncidente(incidente)"
+            >
                             <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                 <div>
                   <div class="fw-semibold">{{ incidente.nombreCompleto }}</div>
@@ -301,6 +303,7 @@
               No hay incidentes activos.
             </div>
           }
+          </div>
         </div>
       </div>
 
@@ -331,15 +334,6 @@
               <div class="small text-secondary">Cuenta de usuario</div>
               <div class="fw-semibold">{{ unidadSeleccionada.cuentaUsuario }}</div>
             </div>
-
-            <div class="d-grid gap-2">
-              <button class="btn btn-primary"> <!--(click)="mandarAvisos('UPR-8027', 'esta notificación es una prueba', '123123')"-->
-                <i class="bi bi-send me-2"></i>Asignar a incidente
-              </button>
-              <button class="btn btn-outline-secondary">
-                <i class="bi bi-geo me-2"></i>Localizar en mapa
-              </button>
-            </div>
           } @else {
             <div class="text-center text-secondary py-4">
               Selecciona una unidad para ver su detalle.
@@ -364,7 +358,7 @@
           <p class="text-secondary mb-0">consulta y asignacion de unidades</p>
         </div>
 
-        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cerrarModalIncidente()">
+        <button type="button" class="btn btn-sm btn-outline-secondary btn-prote-blue-modal" (click)="cerrarModalIncidente()">
           cerrar
         </button>
       </div>
