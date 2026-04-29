@@ -54,9 +54,11 @@ export class InicioSesion implements OnInit {
     try {
       const esLoginCorrecto = await this.authService.login(usrname, pswd);
       this.errorLogin = false
-      if (esLoginCorrecto) {
+      if (esLoginCorrecto && usrname.includes(".emergencias.com")) {
       console.log("usuario y contraseña correctas")
       this.router.navigate(['/dashboard'])
+      } else {
+        this.errorLogin = true
       }
 
     } catch (error) {
