@@ -521,6 +521,8 @@ obtenerTimestamp(fecha: string): number {
       if (this.incidenteSeleccionado?.workers && this.incidenteSeleccionado.workers.length > 0) {
         for (const unidadUID of this.incidenteSeleccionado.workers) {
           console.log("Eliminando info de unidad:", unidadUID)
+          const usuarioUID = 
+
           await this.unidadService.eliminarInfoUnidad(unidadUID)
         }
       } else {
@@ -531,6 +533,7 @@ obtenerTimestamp(fecha: string): number {
       const incidenteID = this.incidenteSeleccionado?.id
       
       if(incidenteID){
+        this.unidadService.eliminarInfoUsuario(incidenteID)
         this.recibirAvisosService.actualizarIncidente(incidenteID, { status: "Finalizado" })
         console.log("Status del aviso ha cambiado a Finalizado")
       }

@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { Database, ref, set, object, listVal, objectVal, update} from '@angular/fire/database';
+import { Database, ref, set, object, listVal, objectVal, update, get} from '@angular/fire/database';
 import { Unidad } from '../models/Unidad';
-import { EMPTY, Observable, throwError } from 'rxjs';
+import { EMPTY, firstValueFrom, Observable, throwError } from 'rxjs';
+import { getDoc } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -38,15 +39,58 @@ export class NuevaUnidadService {
   async eliminarInfoUnidad(unidadID : string){
     try {
       const unidadRef = ref(this.bbdd, `unidades/${unidadID}`)
+      
+      // actualiza el estado de las unidades
       await update(unidadRef,{
         currentCaseId: "",
         hasActiveCase: false,
         estado: "Disponible"
       })
+      
       console.log("Datos actualiados con éxito")
     } catch (error) {
       console.log(`error al actualizar las unidades: error -> ${error}`)
       throw error
     }
   }
+
+  async eliminarInfoUsuario(emergenciaUID: string) {
+  if (!emergenciaUID) {
+    console.error("emergenciaUID es nulo o indefinido");
+    return;
+  }
+
+  try {
+    const emergenciaRef = ref(this.bbdd, `Emergencias/${emergenciaUID}`);
+    const snapshot = await get(emergenciaRef);
+
+    // 1. Validar si el nodo existe antes de acceder a sus propiedades
+    if (!snapshot.exists()) {
+      console.warn(`La emergencia ${emergenciaUID} no existe en la base de datos.`);
+      return;
+    }
+
+    const data = snapshot.val();
+    
+    // 2. Validar que el campo victim exista dentro de data
+    if (!data.victim) {
+      console.warn(`La emergencia existe pero no tiene un campo 'victim'.`);
+      return;
+    }
+
+    const victimUID = String(data.victim);
+    const usuarioRef = ref(this.bbdd, `usuarios/${victimUID}`);
+
+    // 3. Actualización atómica
+    await update(usuarioRef, {
+      currentCaseId: "",
+      hasActiveCase: false,
+    });
+
+    console.log(`Usuario ${victimUID} actualizado correctamente.`);
+  } catch (error) {
+    console.error(`Error en eliminarInfoUsuario:`, error);
+    throw error;
+  }
+}
 }
