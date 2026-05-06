@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Database, ref, set, listVal, update } from '@angular/fire/database';
-import { Firestore, doc, getDoc } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, updateDoc } from '@angular/fire/firestore';
 import { Unidad } from '../models/Unidad';
 import { EMPTY, firstValueFrom, Observable, throwError } from 'rxjs';
 
@@ -77,9 +77,9 @@ export class NuevaUnidadService {
       }
 
       const victimUID = String(data['victim']);
-      const usuarioRef = ref(this.bbdd, `usuarios/${victimUID}`);
+      const usuarioRef = doc(this.firestore, `usuarios/${victimUID}`);
 
-      await update(usuarioRef, {
+      await updateDoc(usuarioRef, {
         currentCaseId: "",
         hasActiveCase: false,
       });
